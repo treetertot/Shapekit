@@ -74,4 +74,14 @@ impl Shape {
         }
         Shape::new(new_points)
     }
+    pub fn average(&self) -> (f32, f32) {
+        let mut avg_x = 0.0;
+        let mut avg_y = 0.0;
+        for (x, y) in self.points.iter() {
+            avg_x += x;
+            avg_y += y;
+        }
+        let len = self.points.len() as f32;
+        (avg_x/len, avg_y/len)
+    }
 }
