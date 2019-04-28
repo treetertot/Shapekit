@@ -55,6 +55,7 @@ pub fn intersection(a: &Line, b: &Line) -> Option<(f32, f32)> {
     }
 }
 
+#[derive(Clone)]
 pub struct InEQ {
     line: Line,
     greater: bool,
