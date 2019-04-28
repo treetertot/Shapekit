@@ -1,5 +1,6 @@
 use crate::lines::{InEQ, Line};
 
+#[derive(Clone)]
 pub struct Shape {
     points: Vec<(f32, f32)>,
     lines: Vec<InEQ>,

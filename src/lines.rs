@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Line {
     slope: Option<f32>,
     intercept: f32,
