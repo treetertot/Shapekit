@@ -1,5 +1,6 @@
 mod lines;
 pub mod shape;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
