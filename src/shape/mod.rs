@@ -45,6 +45,10 @@ impl Shape {
         ditto
     }
 
+    pub fn move_by(&mut self, by: Vector) {
+        self.displacement = self.displacement + by;
+    }
+
     fn iter_ineq(&self) -> IneqIter {
         IneqIter::new(self)
     }

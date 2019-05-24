@@ -1,6 +1,6 @@
 [package]
 name = "shapekit"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["joshua"]
 edition = "2018"
 
