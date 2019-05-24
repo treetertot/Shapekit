@@ -1,5 +1,7 @@
 use crate::lines::InEQ;
 use crate::shape::Shape;
+use crate::vector::Vector;
+
 use std::iter::Iterator;
 
 pub struct IneqIter<'a> {
@@ -20,6 +22,29 @@ impl<'a> Iterator for IneqIter<'a> {
         self.counter += 1;
         if self.counter - 1 < self.shape.points.len() {
             return Some(self.shape.get_ineq(self.counter - 1));
+        }
+        None
+    }
+}
+
+pub struct PointsIter<'a> {
+    shape: &'a Shape,
+    counter: usize,
+}
+
+impl<'a> PointsIter<'a> {
+    pub fn new(shape: &Shape) -> IneqIter {
+        IneqIter{shape: shape, counter: 0}
+    }
+}
+
+impl<'a> Iterator for PointsIter<'a> {
+    type Item = Vector;
+
+    fn next(&mut self) -> Option<Vector> {
+        self.counter += 1;
+        if self.counter - 1 < self.shape.points.len() {
+            return Some(self.shape.points[self.counter - 1]);
         }
         None
     }
