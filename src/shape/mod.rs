@@ -1,7 +1,7 @@
 use crate::{vector::Vector, lines::{Line, InEQ}};
 
 mod shapeiters;
-use shapeiters::IneqIter;
+use shapeiters::*;
 
 #[derive(Clone)]
 pub struct Shape {
@@ -47,6 +47,10 @@ impl Shape {
 
     fn iter_ineq(&self) -> IneqIter {
         IneqIter::new(self)
+    }
+
+    pub fn iter_points(&self) -> IneqIter {
+        PointsIter::new(self)
     }
 
     fn dist_inside(&self, point: Vector) -> Option<Vector> {
