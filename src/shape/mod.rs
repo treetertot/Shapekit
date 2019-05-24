@@ -1,63 +1,58 @@
-use crate::lines::{InEQ, Line};
+use crate::{vector::Vector, lines::{Line, InEQ}};
+
+mod shapeiters;
+use shapeiters::IneqIter;
 
 #[derive(Clone)]
 pub struct Shape {
-    points: Vec<(f32, f32)>,
-    lines: Vec<InEQ>,
+    points: Vec<Vector>,
+    avg: Vector,
+    displacement: Vector,
 }
 
 impl Shape {
-    pub fn new(points: Vec<(f32, f32)>) -> Shape {
-        let mut lines = Vec::new();
-        let mut average = (0.0, 0.0);
-        for (x, y) in points.iter() {
-            average.0 += x;
-            average.1 += y;
+    pub fn new(points: Vec<Vector>, start: Vector) -> Shape {
+        let mut center = Vector{x: 0.0, y: 0.0};
+        for point in points.iter() {
+            center = center + *point;
         }
-        average = (average.0/points.len() as f32, average.1/points.len() as f32);
-        lines.push(InEQ::new(Line::new(points[points.len()-1], points[0]), average));
-        for i in 0..points.len()-1 {
-            lines.push(InEQ::new(Line::new(points[i], points[i+1]), average));
-        }
-        Shape{
-            points: points,
-            lines: lines,
-        }
+        center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
+        Shape{points: points, avg: center, displacement: start - center}
     }
-    pub fn resolve(&self, other: &Shape) -> Option<(f32, f32)> {
-        let mut largest: Option<((f32, f32), f32)> = None;
-        for point in self.points.iter() {
-            match other.dist_inside(*point) {
-                Some(val) => match largest {
-                    Some(big) => if val.1 > big.1 {
-                        largest = Some(((0.0-(val.0).0,0.0-(val.0).1), val.1));
-                    },
-                    None => largest = Some(((0.0-(val.0).0,0.0-(val.0).1), val.1)),
-                },
-                None => (),
-            }
+
+    fn get_line(&self, num: usize) -> Line {
+        if num == 0 {
+            return Line::new(self.points[self.points.len() - 1] + self.displacement, self.points[0] + self.displacement);
         }
-        for point in other.points.iter() {
-            match self.dist_inside(*point) {
-                Some(val) => match largest{
-                    Some(big) => if val.1 > big.1 {
-                        largest = Some(val);
-                    },
-                    None => largest = Some(val),
-                },
-                None => (),
-            }
-        }
-        Some(largest?.0)
+        Line::new(self.points[num - 1] + self.displacement, self.points[num] + self.displacement)
     }
-    pub fn dist_inside(&self, point: (f32, f32)) -> Option<((f32, f32), f32)> {
+
+    pub fn get_point(&self, index: usize) -> Vector {
+        self.points[index] + self.displacement
+    }
+
+    fn get_ineq(&self, index: usize) -> InEQ {
+        self.get_line(index).to_ineq(self.avg + self.displacement)
+    }
+
+    pub fn moved(&self, by: Vector) -> Shape {
+        let mut ditto = self.clone();
+        ditto.displacement = self.displacement + by;
+        ditto
+    }
+
+    fn iter_ineq(&self) -> IneqIter {
+        IneqIter::new(self)
+    }
+
+    fn dist_inside(&self, point: Vector) -> Option<Vector> {
         let mut smallest = None;
-        for eq in self.lines.iter() {
-            if eq.contains(point) {
-                let dist = eq.vec_and_scal_to(point);
+        for ieq in self.iter_ineq() {
+            if ieq.contains(point) {
+                let dist = ieq.vec_to(point);
                 match smallest {
                     None => smallest = Some(dist),
-                    Some(val) => if dist.1 < val.1 {
+                    Some(val) => if dist.magnitude() < val.magnitude() {
                         smallest = Some(dist)
                     },
                 }
@@ -67,22 +62,31 @@ impl Shape {
         }
         smallest
     }
-    pub fn moved(&self, (x, y): (f32, f32)) -> Shape {
-        let mut new_points = self.points.clone();
-        for point in &mut new_points {
-            point.0 += x;
-            point.1 += y;
+
+    pub fn resolve(&self, other: &Shape) -> Option<Vector> {
+        let mut largest: Option<Vector> = None;
+        for &point in self.points.iter() {
+            match other.dist_inside(point) {
+                Some(val) => match largest {
+                    Some(big) => if val.magnitude() > big.magnitude() {
+                        largest = Some(Vector{x: 0.0, y: 0.0} - val)
+                    }
+                    None => largest = Some(Vector{x: 0.0, y: 0.0} - val)
+                }
+                None => ()
+            }
         }
-        Shape::new(new_points)
-    }
-    pub fn average(&self) -> (f32, f32) {
-        let mut avg_x = 0.0;
-        let mut avg_y = 0.0;
-        for (x, y) in self.points.iter() {
-            avg_x += x;
-            avg_y += y;
+        for &point in other.points.iter() {
+            match self.dist_inside(point) {
+                Some(val) => match largest {
+                    Some(big) => if val.magnitude() > big.magnitude() {
+                        largest = Some(val)
+                    }
+                    None => largest = Some(val)
+                }
+                None => ()
+            }
         }
-        let len = self.points.len() as f32;
-        (avg_x/len, avg_y/len)
+        largest
     }
 }
