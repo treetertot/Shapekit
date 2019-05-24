@@ -20,6 +20,10 @@ impl Shape {
         Shape{points: points, avg: center, displacement: start - center}
     }
 
+    pub fn center(&self) -> Vector {
+        self.avg + self.displacement
+    }
+
     fn get_line(&self, num: usize) -> Line {
         if num == 0 {
             return Line::new(self.points[self.points.len() - 1] + self.displacement, self.points[0] + self.displacement);
@@ -32,7 +36,7 @@ impl Shape {
     }
 
     fn get_ineq(&self, index: usize) -> InEQ {
-        self.get_line(index).to_ineq(self.avg + self.displacement)
+        self.get_line(index).to_ineq(self.center())
     }
 
     pub fn moved(&self, by: Vector) -> Shape {
