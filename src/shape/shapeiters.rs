@@ -44,7 +44,7 @@ impl<'a> Iterator for PointsIter<'a> {
     fn next(&mut self) -> Option<Vector> {
         self.counter += 1;
         if self.counter - 1 < self.shape.points.len() {
-            return Some(self.shape.points[self.counter - 1]);
+            return Some(self.shape.points[self.counter - 1] + self.shape.displacement);
         }
         None
     }

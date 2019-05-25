@@ -14,10 +14,8 @@ mod tests {
     fn resolution() {
         use crate::shape::Shape;
         use crate::vector::Vector;
-        let shapea = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(0.0, 1.0), Vector::new(1.0, 1.0), Vector::new(1.0, 0.0)), Vector::new(0.5, 0.5));
-        let shapeb = Shape::new(vec!(Vector::new(0.75, 0.75), Vector::new(1.5, 0.75), Vector::new(1.0, 1.5)), Vector::new(1.833, 1.0));
-        let output = shapea.resolve(&shapeb).unwrap();
-        println!("{} {}", output.x, output.y);
-        assert_eq!(shapea.moved(output).resolve(&shapeb), None);
+        let shapa = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
+        let shapb = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 20.0));
+        println!("{} {}", shapa.resolve(&shapb).unwrap().x, shapa.resolve(&shapb).unwrap().y);
     }
 }

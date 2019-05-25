@@ -39,12 +39,6 @@ impl Shape {
         self.get_line(index).to_ineq(self.center())
     }
 
-    pub fn moved(&self, by: Vector) -> Shape {
-        let mut ditto = self.clone();
-        ditto.displacement = self.displacement + by;
-        ditto
-    }
-
     pub fn move_by(&mut self, by: Vector) {
         self.displacement = self.displacement + by;
     }
