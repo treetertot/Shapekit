@@ -1,4 +1,6 @@
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Sub, Mul, AddAssign, SubAssign};
+
+use std::fmt::{Display, Formatter, Error};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Vector {
@@ -35,6 +37,12 @@ impl Add for Vector {
     }
 }
 
+impl AddAssign for Vector {
+    fn add_assign(&mut self, other: Self) {
+        *self = *self + other
+    }
+}
+
 impl Sub for Vector {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self {
@@ -42,9 +50,21 @@ impl Sub for Vector {
     }
 }
 
+impl SubAssign for Vector {
+    fn sub_assign(&mut self, other: Self) {
+        *self = *self - other
+    }
+}
+
 impl Mul<f32> for Vector {
     type Output = Self;
     fn mul(self, rhs: f32) -> Self {
         Vector{x: self.x * rhs, y: self.y * rhs}
+    }
+}
+
+impl Display for Vector {
+    fn fmt(&self, form: &mut Formatter) -> Result<(), Error> {
+        write!(form, "<{}, {}>", self.x, self.y)
     }
 }

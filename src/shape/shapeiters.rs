@@ -33,8 +33,8 @@ pub struct PointsIter<'a> {
 }
 
 impl<'a> PointsIter<'a> {
-    pub fn new(shape: &Shape) -> IneqIter {
-        IneqIter{shape: shape, counter: 0}
+    pub fn new(shape: &Shape) -> PointsIter {
+        PointsIter{shape: shape, counter: 0}
     }
 }
 
@@ -44,7 +44,7 @@ impl<'a> Iterator for PointsIter<'a> {
     fn next(&mut self) -> Option<Vector> {
         self.counter += 1;
         if self.counter - 1 < self.shape.points.len() {
-            return Some(self.shape.points[self.counter - 1] + self.shape.displacement);
+            return Some(self.shape.get_point(self.counter - 1));
         }
         None
     }

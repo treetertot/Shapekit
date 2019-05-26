@@ -20,6 +20,14 @@ impl Shape {
         Shape{points: points, avg: center, displacement: start - center}
     }
 
+    pub fn from_tuples(tuples: Vec<(f32, f32)>) -> Shape {
+        let mut new = Vec::new();
+        for i in 0..(tuples.len() - 1) {
+            new.push(Vector::from_tuple(tuples[i]));
+        }
+        Shape::new(new, Vector::from_tuple(tuples[tuples.len()-1]))
+    }
+
     pub fn center(&self) -> Vector {
         self.avg + self.displacement
     }
@@ -47,7 +55,7 @@ impl Shape {
         IneqIter::new(self)
     }
 
-    pub fn iter_points(&self) -> IneqIter {
+    pub fn iter_points(&self) -> PointsIter {
         PointsIter::new(self)
     }
 
@@ -70,29 +78,16 @@ impl Shape {
     }
 
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
-        let mut largest: Option<Vector> = None;
-        for &point in self.points.iter() {
-            match other.dist_inside(point) {
-                Some(val) => match largest {
-                    Some(big) => if val.magnitude() > big.magnitude() {
-                        largest = Some(Vector{x: 0.0, y: 0.0} - val)
-                    }
-                    None => largest = Some(Vector{x: 0.0, y: 0.0} - val)
-                }
-                None => ()
+        for point in other.iter_points() {
+            if let Some(dist) = self.dist_inside(point) {
+                return Some(dist);
             }
         }
-        for &point in other.points.iter() {
-            match self.dist_inside(point) {
-                Some(val) => match largest {
-                    Some(big) => if val.magnitude() > big.magnitude() {
-                        largest = Some(val)
-                    }
-                    None => largest = Some(val)
-                }
-                None => ()
+        for point in self.iter_points() {
+            if let Some(dist) = other.dist_inside(point) {
+                return Some(dist * -1.0)
             }
         }
-        largest
+        None
     }
 }

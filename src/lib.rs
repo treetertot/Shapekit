@@ -15,7 +15,7 @@ mod tests {
         use crate::shape::Shape;
         use crate::vector::Vector;
         let shapa = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
-        let shapb = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 20.0));
-        println!("{} {}", shapa.resolve(&shapb).unwrap().x, shapa.resolve(&shapb).unwrap().y);
+        let _shapb = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
+        println!("c{}", shapa.center());
     }
 }
