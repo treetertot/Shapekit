@@ -18,6 +18,7 @@ impl<'a> IneqIter<'a> {
 impl<'a> Iterator for IneqIter<'a> {
     type Item = InEQ;
 
+    #[inline]
     fn next(&mut self) -> Option<InEQ> {
         self.counter += 1;
         if self.counter - 1 < self.shape.points.len() {
@@ -41,6 +42,7 @@ impl<'a> PointsIter<'a> {
 impl<'a> Iterator for PointsIter<'a> {
     type Item = Vector;
 
+    #[inline]
     fn next(&mut self) -> Option<Vector> {
         self.counter += 1;
         if self.counter - 1 < self.shape.points.len() {

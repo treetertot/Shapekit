@@ -32,6 +32,7 @@ impl Shape {
         self.avg + self.displacement
     }
 
+    #[inline]
     fn get_line(&self, num: usize) -> Line {
         if num == 0 {
             return Line::new(self.points[self.points.len() - 1] + self.displacement, self.points[0] + self.displacement);
@@ -39,10 +40,12 @@ impl Shape {
         Line::new(self.points[num - 1] + self.displacement, self.points[num] + self.displacement)
     }
 
+    #[inline]
     pub fn get_point(&self, index: usize) -> Vector {
         self.points[index] + self.displacement
     }
 
+    #[inline]
     fn get_ineq(&self, index: usize) -> InEQ {
         self.get_line(index).to_ineq(self.center())
     }
@@ -59,6 +62,7 @@ impl Shape {
         PointsIter::new(self)
     }
 
+    #[inline]
     fn dist_inside(&self, point: Vector) -> Option<Vector> {
         let mut smallest = None;
         for ieq in self.iter_ineq() {

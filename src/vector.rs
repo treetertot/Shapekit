@@ -17,6 +17,7 @@ impl Vector {
         (self.y/self.x).atan()
     }
 
+    #[inline]
     pub fn magnitude(self) -> f32 {
         (self.y.powi(2) + self.x.powi(2)).powf(0.5)
     }
@@ -32,12 +33,14 @@ impl Vector {
 
 impl Add for Vector {
     type Output = Self;
+    #[inline]
     fn add(self, rhs: Self) -> Self {
         Vector{x: self.x + rhs.x, y: self.y + rhs.y}
     }
 }
 
 impl AddAssign for Vector {
+    #[inline]
     fn add_assign(&mut self, other: Self) {
         *self = *self + other
     }
@@ -45,12 +48,14 @@ impl AddAssign for Vector {
 
 impl Sub for Vector {
     type Output = Self;
+    #[inline]
     fn sub(self, rhs: Self) -> Self {
         Vector{x: self.x - rhs.x, y: self.y - rhs.y}
     }
 }
 
 impl SubAssign for Vector {
+    #[inline]
     fn sub_assign(&mut self, other: Self) {
         *self = *self - other
     }
@@ -58,6 +63,7 @@ impl SubAssign for Vector {
 
 impl Mul<f32> for Vector {
     type Output = Self;
+    #[inline]
     fn mul(self, rhs: f32) -> Self {
         Vector{x: self.x * rhs, y: self.y * rhs}
     }
