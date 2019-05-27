@@ -8,16 +8,24 @@ pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,
     displacement: Vector,
+    radius: f32,
 }
 
 impl Shape {
     pub fn new(points: Vec<Vector>, start: Vector) -> Shape {
         let mut center = Vector{x: 0.0, y: 0.0};
-        for point in points.iter() {
-            center = center + *point;
+        for &point in points.iter() {
+            center = center + point;
         }
         center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
-        Shape{points: points, avg: center, displacement: start - center}
+        let mut rad = 0.0;
+        for &point in points.iter() {
+            let dis = (point - center).magnitude();
+            if dis > rad {
+                rad = dis;
+            }
+        }
+        Shape{points: points, avg: center, displacement: start - center, radius: rad}
     }
 
     pub fn from_tuples(tuples: Vec<(f32, f32)>) -> Shape {
@@ -82,6 +90,10 @@ impl Shape {
     }
 
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
+        let dist = (self.center() - other.center()).magnitude();
+        if dist > self.radius + other.radius {
+            return None;
+        }
         for point in other.iter_points() {
             if let Some(dist) = self.dist_inside(point) {
                 return Some(dist);
