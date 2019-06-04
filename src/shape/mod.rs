@@ -10,7 +10,7 @@ pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,
     displacement: Vector,
-    rotation: f32,
+    rotation: Option<f32>, //for the use cases I had in mind, many objects will be unrotated, so checking for rotation might be cheaper
     radius: f32,
 }
 
@@ -28,7 +28,7 @@ impl Shape {
                 rad = dis;
             }
         }
-        Shape{points: points, avg: center, displacement: start - center, rotation: 0.0, radius: rad}
+        Shape{points: points, avg: center, displacement: start - center, rotation: None, radius: rad}
     }
 
     pub fn from_tuples(tuples: Vec<(f32, f32)>) -> Shape {
@@ -53,7 +53,10 @@ impl Shape {
 
     #[inline]
     pub fn get_point(&self, index: usize) -> Vector {
-        (self.points[index] + self.displacement).rotated_around(self.center(), self.rotation)
+        match self.rotation {
+            Some(ang) => (self.points[index] + self.displacement).rotated_around(self.center(), ang),
+            None => self.points[index] + self.displacement,
+        }
     }
 
     #[inline]
@@ -66,13 +69,18 @@ impl Shape {
     }
 
     pub fn rotate(&mut self, angle: f32) {
-        let new = self.rotation + angle;
-        if new > PI {
-            self.rotation = new - (PI * 2.0);
-        } else if new < -PI {
-            self.rotation = new + (PI * 2.0);
-        } else {
-            self.rotation = new;
+        match self.rotation {
+            Some(ang) => {
+                let new = ang + angle;
+                if new > PI {
+                    self.rotation = Some(new - (PI * 2.0));
+                } else if new < -PI {
+                    self.rotation = Some(new + (PI * 2.0));
+                } else {
+                    self.rotation = Some(new);
+                }
+            },
+            None => self.rotation = Some(angle),
         }
     }
 

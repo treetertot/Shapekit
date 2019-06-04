@@ -1,3 +1,4 @@
 # Shapekit
 
-Shapekit is the pysics engine for lame. The moved method is now just a way to increase computation. It only exists until I can change the tests.
+Shapekit is a collision engine for games.
+By separationg the shapes instead of having them in a world, the user has more control at the cost of having realism or things done for them.

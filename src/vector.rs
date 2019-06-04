@@ -33,7 +33,7 @@ impl Vector {
 
     #[inline]
     pub fn magnitude(self) -> f32 {
-        (self.y.powi(2) + self.x.powi(2)).powf(0.5)
+        (self.y.powi(2) + self.x.powi(2)).sqrt()
     }
 
     pub const fn from_tuple((x, y): (f32, f32)) -> Self {
