@@ -2,6 +2,8 @@ use std::ops::{Add, Sub, Mul, AddAssign, SubAssign};
 
 use std::fmt::{Display, Formatter, Error};
 
+use std::f32::consts::PI;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Vector {
     pub x: f32,
@@ -9,12 +11,24 @@ pub struct Vector {
 }
 
 impl Vector {
-    pub fn new(x: f32, y: f32) -> Vector {
+    pub const fn new(x: f32, y: f32) -> Vector {
         Vector{x: x, y: y}
     }
 
+    #[inline]
+    pub fn from_mag_dir(mag: f32, dir: f32) -> Self {
+        Self::new(mag * dir.cos(), mag * dir.sin())
+    }
+
+    #[inline]
     pub fn angle(self) -> f32 {
-        (self.y/self.x).atan()
+        if self.x >= 0.0 {
+            return (self.y/self.x).atan();
+        }
+        if self.y >= 0.0 {
+            return (self.y/self.x).atan() + PI;
+        }
+        return (self.y/self.x).atan() - PI;
     }
 
     #[inline]
@@ -26,16 +40,27 @@ impl Vector {
         Vector{x: x, y: y}
     }
 
-    pub fn to_tuple(self) -> (f32, f32) {
-        (self.x, self.y)
+    #[inline]
+    pub fn mag_dir(self) -> (f32, f32) {
+        (self.magnitude(), self.angle())
+    }
+
+    #[inline]
+    fn rotated(self, angle: f32) -> Self {
+        Self::from_mag_dir(self.magnitude(), self.angle() + angle)
+    }
+
+    #[inline]
+    pub fn rotated_around(self, around: Self, angle: f32) -> Self {
+        (self - around).rotated(angle) + around
     }
 }
 
 impl Add for Vector {
     type Output = Self;
     #[inline]
-    fn add(self, rhs: Self) -> Self {
-        Vector{x: self.x + rhs.x, y: self.y + rhs.y}
+    fn add(self, other: Self) -> Self {
+        Vector{x: self.x + other.x, y: self.y + other.y}
     }
 }
 
@@ -49,8 +74,8 @@ impl AddAssign for Vector {
 impl Sub for Vector {
     type Output = Self;
     #[inline]
-    fn sub(self, rhs: Self) -> Self {
-        Vector{x: self.x - rhs.x, y: self.y - rhs.y}
+    fn sub(self, other: Self) -> Self {
+        Vector{x: self.x - other.x, y: self.y - other.y}
     }
 }
 
@@ -64,8 +89,8 @@ impl SubAssign for Vector {
 impl Mul<f32> for Vector {
     type Output = Self;
     #[inline]
-    fn mul(self, rhs: f32) -> Self {
-        Vector{x: self.x * rhs, y: self.y * rhs}
+    fn mul(self, other: f32) -> Self {
+        Vector{x: self.x * other, y: self.y * other}
     }
 }
 

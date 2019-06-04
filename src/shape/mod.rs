@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::{vector::Vector, lines::{Line, InEQ}};
 
 mod shapeiters;
@@ -8,6 +10,7 @@ pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,
     displacement: Vector,
+    rotation: f32,
     radius: f32,
 }
 
@@ -25,7 +28,7 @@ impl Shape {
                 rad = dis;
             }
         }
-        Shape{points: points, avg: center, displacement: start - center, radius: rad}
+        Shape{points: points, avg: center, displacement: start - center, rotation: 0.0, radius: rad}
     }
 
     pub fn from_tuples(tuples: Vec<(f32, f32)>) -> Shape {
@@ -43,14 +46,14 @@ impl Shape {
     #[inline]
     fn get_line(&self, num: usize) -> Line {
         if num == 0 {
-            return Line::new(self.points[self.points.len() - 1] + self.displacement, self.points[0] + self.displacement);
+            return Line::new(self.get_point(self.points.len() - 1), self.get_point(0));
         }
-        Line::new(self.points[num - 1] + self.displacement, self.points[num] + self.displacement)
+        Line::new(self.get_point(num - 1), self.get_point(num))
     }
 
     #[inline]
     pub fn get_point(&self, index: usize) -> Vector {
-        self.points[index] + self.displacement
+        (self.points[index] + self.displacement).rotated_around(self.center(), self.rotation)
     }
 
     #[inline]
@@ -60,6 +63,17 @@ impl Shape {
 
     pub fn move_by(&mut self, by: Vector) {
         self.displacement = self.displacement + by;
+    }
+
+    pub fn rotate(&mut self, angle: f32) {
+        let new = self.rotation + angle;
+        if new > PI {
+            self.rotation = new - (PI * 2.0);
+        } else if new < -PI {
+            self.rotation = new + (PI * 2.0);
+        } else {
+            self.rotation = new;
+        }
     }
 
     fn iter_ineq(&self) -> IneqIter {
