@@ -5,7 +5,9 @@ use crate::{vector::Vector, lines::{Line, InEQ}};
 mod shapeiters;
 use shapeiters::*;
 
-#[derive(Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,

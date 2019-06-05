@@ -1,10 +1,10 @@
 use std::ops::{Add, Sub, Mul, AddAssign, SubAssign};
-
 use std::fmt::{Display, Formatter, Error};
-
 use std::f32::consts::PI;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, PartialEq, Debug, Deserialize, Serialize)]
 pub struct Vector {
     pub x: f32,
     pub y: f32,
