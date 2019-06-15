@@ -33,12 +33,12 @@ impl Shape {
         Shape{points: points, avg: center, displacement: start - center, rotation: None, radius: rad}
     }
 
-    pub fn from_tuples(tuples: Vec<(f32, f32)>) -> Shape {
+    pub fn from_tuples(tuples: Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
         let mut new = Vec::new();
         for i in 0..(tuples.len() - 1) {
             new.push(Vector::from_tuple(tuples[i]));
         }
-        Shape::new(new, Vector::from_tuple(tuples[tuples.len()-1]))
+        Shape::new(new, Vector::from_tuple(last))
     }
 
     pub fn center(&self) -> Vector {
@@ -66,10 +66,12 @@ impl Shape {
         self.get_line(index).to_ineq(self.center())
     }
 
+    #[inline]
     pub fn move_by(&mut self, by: Vector) {
         self.displacement = self.displacement + by;
     }
 
+    #[inline]
     pub fn rotate(&mut self, angle: f32) {
         match self.rotation {
             Some(ang) => {

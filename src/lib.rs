@@ -1,6 +1,7 @@
 mod lines;
-pub mod shape;
+mod shape;
 pub mod vector;
+pub mod world;
 
 #[cfg(test)]
 mod tests {
