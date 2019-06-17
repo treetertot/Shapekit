@@ -96,6 +96,9 @@ impl WorldHandle {
     pub fn add_shape(&self, points: Vec<(f32, f32)>, start: (f32, f32)) -> ShapeHandle {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start)), world: self.0.clone()}
     }
+    pub fn new() -> Self {
+        WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new(), collisions: Vec::new(), move_tags: Vec::new()})))
+    }
 }
 impl Serialize for WorldHandle {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
