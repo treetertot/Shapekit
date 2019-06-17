@@ -1,6 +1,6 @@
 # Shapekit
 
-Shapekit is a collision engine for games.
+Shapekit is a collision engine for games. It is designed to be used with lame, but that isn't necessary.
 
 Basics of Shapekit:
 All the shapes are in a world. Shapes and their collisions are accessed through a ShapeHandle.
@@ -10,3 +10,4 @@ Use Vector types to move shapes and f32s to rotate them.
 Have fun!
 
 It also uses serde to load/write worlds to files.
+note: 0.4.1 will add serde support, I just am to impatient to do that now
