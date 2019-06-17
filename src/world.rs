@@ -97,6 +97,23 @@ impl WorldHandle {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start)), world: self.0.clone()}
     }
 }
+impl Serialize for WorldHandle {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.0.read().unwrap().serialize(serializer)
+    }
+}
+
+pub struct WorldAndShapeHandles (WorldHandle, Vec<ShapeHandle>);
+impl<'de> Deserialize<'de> for WorldAndShapeHandles {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let world = Arc::new(RwLock::new(World::deserialize(deserializer)?));
+        let mut handles = Vec::new();
+        for (id, _) in world.read().unwrap().shapes.iter() {
+            handles.push(ShapeHandle{ world: world.clone(), id: *id })
+        }
+        Ok(WorldAndShapeHandles(WorldHandle(world), handles))
+    }
+}
 
 pub struct ShapeHandle {
     world: Arc<RwLock<World>>,

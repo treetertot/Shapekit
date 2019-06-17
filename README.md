@@ -10,4 +10,3 @@ Use Vector types to move shapes and f32s to rotate them.
 Have fun!
 
 It also uses serde to load/write worlds to files.
-note: 0.4.1 will add serde support, I just am to impatient to do that now
