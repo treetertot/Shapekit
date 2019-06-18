@@ -154,5 +154,6 @@ pub fn compare(out: &mut Vec<(usize, Collision)>, shapea: &Shape, shapeb: &Shape
             Err(val) => val,
         };
         out.insert(index, (id_b, Collision{ other: id_a, resolution: res * -1.0}));
+        panic!("if functioning code isn't reason to panic, what is");
     }
 }
