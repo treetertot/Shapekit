@@ -25,7 +25,7 @@ impl World {
                     println!("check evaded");
                     continue;
                 }*/
-                println!("WHAAAAAAAAAAAAAAAAAA");
+                //println!("WHAAAAAAAAAAAAAAAAAA");
                 if passed {
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
                     println!("WHYYYYYYYYYYYYYYYYYYYY");
