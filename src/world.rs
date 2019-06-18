@@ -22,16 +22,14 @@ impl World {
             for (id_b, shape_b) in self.shapes.iter() {
                 if current_moved == *id_b {
                     passed = true;
-                    println!("check evaded");
                     continue;
                 }
                 if passed {
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
-                    println!("checking all");
                 } else {
                     match self.move_tags.binary_search(&id_b) {
-                        Ok(_) => {println!("cancelled check because move before pass"); continue},
-                        Err(_) => println!("checking unmoved"),
+                        Ok(_) => continue,
+                        Err(_) => (),
                     }
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
                 }
