@@ -55,6 +55,7 @@ impl World {
         }
     }
     fn get_collision(&mut self, id: usize) -> Option<Collision> {
+        println!("{} collisions left", self.collisions.len());
         if self.collisions.len() == 0 {
             self.check();
         }
