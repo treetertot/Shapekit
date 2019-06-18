@@ -135,8 +135,11 @@ impl ShapeHandle {
         let world = self.world.read().unwrap();
         world.get_shape(self.id).center()
     }
-    pub fn get_collision(&self) -> Option<Collision> {
+    fn get_collision(&self) -> Option<Collision> {
         self.world.write().unwrap().get_collision(self.id)
+    }
+    pub fn collisions<'a>(&'a self) -> CollisionIter<'a> {
+        CollisionIter { handle: self }
     }
 }
 impl Drop for ShapeHandle {
