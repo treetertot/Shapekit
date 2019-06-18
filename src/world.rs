@@ -27,11 +27,11 @@ impl World {
                 }
                 if passed {
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
-                    println!("WHYYYYYYYYYYYYYYYYYYYY");
+                    println!("checking all");
                 } else {
                     match self.move_tags.binary_search(&id_b) {
-                        Ok(_) => continue,
-                        Err(_) => (),
+                        Ok(_) => {println!("cancelled check because move afteer pass"); continue},
+                        Err(_) => println!("checking unmoved"),
                     }
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
                 }
