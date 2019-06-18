@@ -18,7 +18,7 @@ impl World {
     fn check(&mut self) {
         let mut new_colls = Vec::new();
         for &current_moved in self.move_tags.iter() {
-            let mut passed = true;
+            let mut passed = false;
             for (id_b, shape_b) in self.shapes.iter() {
                 if current_moved == *id_b {
                     passed = true;
