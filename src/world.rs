@@ -18,14 +18,13 @@ impl World {
     fn check(&mut self) {
         let mut new_colls = Vec::new();
         for &current_moved in self.move_tags.iter() {
-            let passed = true;
+            let mut passed = true;
             for (id_b, shape_b) in self.shapes.iter() {
-                /*if current_moved == *id_b {
+                if current_moved == *id_b {
                     passed = true;
                     println!("check evaded");
                     continue;
-                }*/
-                //println!("WHAAAAAAAAAAAAAAAAAA");
+                }
                 if passed {
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
                     println!("WHYYYYYYYYYYYYYYYYYYYY");
