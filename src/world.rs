@@ -22,6 +22,7 @@ impl World {
             for (id_b, shape_b) in self.shapes.iter() {
                 if current_moved == *id_b {
                     passed = true;
+                    println!("check evaded");
                     continue;
                 }
                 if passed {
@@ -29,7 +30,7 @@ impl World {
                 } else {
                     match self.move_tags.binary_search(&id_b) {
                         Ok(_) => continue,
-                        Err(_) => (),
+                        Err(_) => println!("check not evaded"),
                     }
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
                 }
@@ -55,7 +56,6 @@ impl World {
         }
     }
     fn get_collision(&mut self, id: usize) -> Option<Collision> {
-        println!("{} collisions left", self.collisions.len());
         if self.collisions.len() == 0 {
             self.check();
         }
