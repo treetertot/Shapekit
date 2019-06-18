@@ -30,7 +30,7 @@ impl World {
                     println!("checking all");
                 } else {
                     match self.move_tags.binary_search(&id_b) {
-                        Ok(_) => {println!("cancelled check because move afteer pass"); continue},
+                        Ok(_) => {println!("cancelled check because move before pass"); continue},
                         Err(_) => println!("checking unmoved"),
                     }
                     self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
@@ -44,6 +44,7 @@ impl World {
         let index_a = self.shapes.binary_search_by(|(probe, _)| probe.cmp(&id_a)).unwrap();
         let shape_a = &self.shapes[index_a].1;
         if let Some(res) = shape_a.resolve(shape_b) {
+            println!("collision detected");
             let coll_index = match self.collisions.binary_search_by(|(probe, _)| probe.cmp(&id_a)) {
                 Ok(val) => val,
                 Err(val) => val,
