@@ -15,8 +15,21 @@ mod tests {
     fn resolution() {
         use crate::shape::Shape;
         use crate::vector::Vector;
-        let shapa = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
-        let _shapb = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
-        println!("c{}", shapa.center());
+        let mut shapa = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0));
+        let shapb = Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(51.0, 51.0));
+        let res = shapa.resolve(&shapb).unwrap();
+        println!("{}", res);
+        shapa.move_by(res);
+        let res = shapa.resolve(&shapb).unwrap();
+        println!("{}", res);
+    }
+    #[test]
+    fn checker() {
+        use crate::shape::Shape;
+        use crate::vector::Vector;
+        use crate::world::compare;
+        let mut out = Vec::new();
+        compare(&mut out, &Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(0.0, 0.0)), &Shape::new(vec!(Vector::new(0.0, 0.0), Vector::new(100.0, 0.0), Vector::new(50.0, 70.0)), Vector::new(51.0, 51.0)), 0, 1);
+        assert_eq!(2, out.len());
     }
 }

@@ -25,35 +25,18 @@ impl World {
                     continue;
                 }
                 if passed {
-                    self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
+                    compare(&mut new_colls, self.get_shape(current_moved), shape_b, current_moved, *id_b);
                 } else {
                     match self.move_tags.binary_search(&id_b) {
                         Ok(_) => continue,
                         Err(_) => (),
                     }
-                    self.check_two(&mut new_colls, current_moved, *id_b, shape_b);
+                    compare(&mut new_colls, self.get_shape(current_moved), shape_b, current_moved, *id_b);
                 }
             }
         }
         self.collisions = new_colls;
         self.move_tags = Vec::with_capacity(self.move_tags.len());
-    }
-    fn check_two(&self, out: &mut Vec<(usize, Collision)>, id_a: usize, id_b: usize, shape_b: &Shape) {
-        let index_a = self.shapes.binary_search_by(|(probe, _)| probe.cmp(&id_a)).unwrap();
-        let shape_a = &self.shapes[index_a].1;
-        if let Some(res) = shape_a.resolve(shape_b) {
-            println!("collision detected");
-            let coll_index = match self.collisions.binary_search_by(|(probe, _)| probe.cmp(&id_a)) {
-                Ok(val) => val,
-                Err(val) => val,
-            };
-            out.insert(coll_index, (id_a, Collision{other: id_b, resolution: res}));
-            let coll_index = match self.collisions.binary_search_by(|(probe, _)| probe.cmp(&id_b)) {
-                Ok(val) => val,
-                Err(val) => val,
-            };
-            out.insert(coll_index, (id_b, Collision{other: id_a, resolution: res * -1.0}));
-        }
     }
     fn get_collision(&mut self, id: usize) -> Option<Collision> {
         if self.collisions.len() == 0 {
@@ -156,5 +139,20 @@ impl<'a> Iterator for CollisionIter<'a> {
     type Item = Collision;
     fn next(&mut self) -> Option<Collision> {
         self.handle.get_collision()
+    }
+}
+
+pub fn compare(out: &mut Vec<(usize, Collision)>, shapea: &Shape, shapeb: &Shape, id_a: usize, id_b: usize) {
+    if let Some(res) = shapea.resolve(shapeb) {
+        let index = match out.binary_search_by(|(probe, _)| probe.cmp(&id_a)) {
+            Ok(val) => val,
+            Err(val) => val,
+        };
+        out.insert(index, (id_a, Collision{ other: id_b, resolution: res}));
+        let index = match out.binary_search_by(|(probe, _)| probe.cmp(&id_b)) {
+            Ok(val) => val,
+            Err(val) => val,
+        };
+        out.insert(index, (id_b, Collision{ other: id_a, resolution: res * -1.0}));
     }
 }
