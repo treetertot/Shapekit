@@ -53,7 +53,6 @@ mod tests {
             assert_ne!(None, it.next());
             let mut it = s2.collisions();
             assert_ne!(None, it.next());
-            println!("off to a start");
         }
     }
 }
