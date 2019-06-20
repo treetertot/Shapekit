@@ -3,11 +3,11 @@ use std::f32::consts::PI;
 use crate::{vector::Vector, lines::{Line, InEQ}};
 
 mod shapeiters;
-use shapeiters::*;
+pub use shapeiters::*;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,
@@ -35,8 +35,8 @@ impl Shape {
 
     pub fn from_tuples(tuples: Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
         let mut new = Vec::new();
-        for i in 0..(tuples.len() - 1) {
-            new.push(Vector::from_tuple(tuples[i]));
+        for pt in tuples {
+            new.push(Vector::from_tuple(pt));
         }
         Shape::new(new, Vector::from_tuple(last))
     }

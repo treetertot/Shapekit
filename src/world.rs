@@ -67,10 +67,7 @@ impl World {
             Ok(_) => panic!("tried to add shape that aldready exists"),
             Err(index) => self.move_tags.insert(index, id),
         }
-        match self.shapes.binary_search_by(|(probe, _)| probe.cmp(&id)) {
-            Ok(_) => panic!("tried to add shape that aldready exists"),
-            Err(index) => self.shapes.insert(index, (id, shape)),
-        }
+        self.shapes.push((id, shape));
         id
     }
 }
@@ -78,7 +75,7 @@ impl World {
 pub struct WorldHandle (Arc<RwLock<World>>);
 impl WorldHandle {
     pub fn add_shape(&self, points: Vec<(f32, f32)>, start: (f32, f32)) -> ShapeHandle {
-        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start)), world: self.0.clone()}
+        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start)), world: self.0.clone() }
     }
     pub fn new() -> Self {
         WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new(), collisions: Vec::new(), move_tags: Vec::new()})))
@@ -154,6 +151,5 @@ pub fn compare(out: &mut Vec<(usize, Collision)>, shapea: &Shape, shapeb: &Shape
             Err(val) => val,
         };
         out.insert(index, (id_b, Collision{ other: id_a, resolution: res * -1.0}));
-        panic!("if functioning code isn't reason to panic, what is");
     }
 }

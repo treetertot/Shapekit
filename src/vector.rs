@@ -41,6 +41,11 @@ impl Vector {
     }
 
     #[inline]
+    pub const fn to_tuple(self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
+    #[inline]
     pub fn mag_dir(self) -> (f32, f32) {
         (self.magnitude(), self.angle())
     }
