@@ -117,7 +117,6 @@ impl ShapeHandle {
         world.get_shape(self.id).center()
     }
     fn get_collision(&self) -> Option<Collision> {
-        println!("{} collisions left", self.world.read().unwrap().collisions.len());
         self.world.write().unwrap().get_collision(self.id)
     }
     pub fn collisions<'a>(&'a self) -> CollisionIter<'a> {
