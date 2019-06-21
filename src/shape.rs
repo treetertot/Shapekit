@@ -13,7 +13,7 @@ pub struct Shape {
     avg: Vector,
     displacement: Vector,
     rotation: Option<f32>, //for the use cases I had in mind, many objects will be unrotated, so checking for rotation might be cheaper
-    radius: f32,
+    max: Vector,
 }
 
 impl Shape {
@@ -24,13 +24,16 @@ impl Shape {
         }
         center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
         let mut rad = 0.0;
+        let mut rvec = Vector::new(0.0, 0.0);
         for &point in points.iter() {
-            let dis = (point - center).magnitude();
+            let vdis = point - center;
+            let dis = vdis.magnitude();
             if dis > rad {
                 rad = dis;
+                rvec = vdis;
             }
         }
-        Shape{points: points, avg: center, displacement: start - center, rotation: None, radius: rad}
+        Shape{points: points, avg: center, displacement: start - center, rotation: None, max: rvec.abs()}
     }
 
     pub fn from_tuples(tuples: Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
@@ -96,6 +99,12 @@ impl Shape {
         PointsIter::new(self)
     }
 
+    pub fn max_test(&self, other: &Shape) -> bool { // true if could collide
+        let (x, y) = (other.center() - self.center()).abs().to_tuple();
+        let combined = self.max + other.max;
+        x < combined.x && y < combined.y
+    }
+
     #[inline]
     fn dist_inside(&self, point: Vector) -> Option<Vector> {
         let mut smallest = None;
@@ -116,8 +125,7 @@ impl Shape {
     }
 
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
-        let dist = (self.center() - other.center()).magnitude();
-        if dist > self.radius + other.radius {
+        if !self.max_test(other) {
             return None;
         }
         for point in other.iter_points() {

@@ -59,6 +59,11 @@ impl Vector {
     pub fn rotated_around(self, around: Self, angle: f32) -> Self {
         (self - around).rotated(angle) + around
     }
+
+    #[inline]
+    pub fn abs(self) -> Vector {
+        Vector{x: self.x.abs(), y: self.y.abs()}
+    }
 }
 
 impl Add for Vector {
