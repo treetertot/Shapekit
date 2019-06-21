@@ -11,44 +11,8 @@ use std::iter::Iterator;
 struct World {
     id_counter: usize,
     shapes: Vec<(usize, Shape)>,
-    collisions: Vec<(usize, Collision)>,
-    move_tags: Vec<usize>,
 }
 impl World {
-    fn check(&mut self) {
-        let mut new_colls = Vec::new();
-        for &current_moved in self.move_tags.iter() {
-            let mut passed = false;
-            for (id_b, shape_b) in self.shapes.iter() {
-                if current_moved == *id_b {
-                    passed = true;
-                    continue;
-                }
-                if passed {
-                    compare(&mut new_colls, self.get_shape(current_moved), shape_b, current_moved, *id_b);
-                } else {
-                    match self.move_tags.binary_search(&id_b) {
-                        Ok(_) => continue,
-                        Err(_) => (),
-                    }
-                    compare(&mut new_colls, self.get_shape(current_moved), shape_b, current_moved, *id_b);
-                }
-            }
-        }
-        self.collisions = new_colls;
-        self.move_tags = Vec::with_capacity(self.move_tags.len());
-    }
-    fn get_collision(&mut self, id: usize) -> Option<Collision> {
-        if self.collisions.len() == 0 {
-            self.check();
-        }
-        match self.collisions.binary_search_by(|(probe, _)| probe.cmp(&id)) {
-            Ok(index) => {
-                Some(self.collisions.remove(index).1)
-            },
-            Err(_) => None,
-        }
-    }
     fn get_shape(&self, id: usize) -> &Shape {
         &self.shapes[self.shapes.binary_search_by(|(probe, _)| probe.cmp(&id)).unwrap()].1
     }
@@ -63,10 +27,6 @@ impl World {
     fn add_shape(&mut self, shape: Shape) -> usize {
         let id = self.id_counter;
         self.id_counter += 1;
-        match self.move_tags.binary_search(&id) {
-            Ok(_) => panic!("tried to add shape that aldready exists"),
-            Err(index) => self.move_tags.insert(index, id),
-        }
         self.shapes.push((id, shape));
         id
     }
@@ -78,7 +38,7 @@ impl WorldHandle {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start)), world: self.0.clone() }
     }
     pub fn new() -> Self {
-        WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new(), collisions: Vec::new(), move_tags: Vec::new()})))
+        WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new()})))
     }
 }
 impl Serialize for WorldHandle {
@@ -116,11 +76,22 @@ impl ShapeHandle {
         let world = self.world.read().unwrap();
         world.get_shape(self.id).center()
     }
-    fn get_collision(&self) -> Option<Collision> {
-        self.world.write().unwrap().get_collision(self.id)
+    pub fn collisions(&self) -> CollisionIter {
+        let world = self.world.read().unwrap();
+        let shape_a = world.get_shape(self.id);
+        let mut list = Vec::new();
+        for (i, shape_b) in world.shapes.iter() {
+            if *i == self.id {
+                continue;
+            }
+            if let Some(res) = shape_a.resolve(shape_b) {
+                list.push(Collision{ other: *i, resolution: res });
+            }
+        }
+        CollisionIter { list: list }
     }
-    pub fn collisions<'a>(&'a self) -> CollisionIter<'a> {
-        CollisionIter { handle: self }
+    pub fn get_id(&self) -> usize {
+        self.id
     }
 }
 impl Drop for ShapeHandle {
@@ -129,13 +100,14 @@ impl Drop for ShapeHandle {
     }
 }
 
-pub struct CollisionIter<'a> {
-    handle: &'a ShapeHandle,
+pub struct CollisionIter {
+    list: Vec<Collision>
 }
-impl<'a> Iterator for CollisionIter<'a> {
+impl Iterator for CollisionIter {
     type Item = Collision;
+    #[inline]
     fn next(&mut self) -> Option<Collision> {
-        self.handle.get_collision()
+        self.list.pop()
     }
 }
 
