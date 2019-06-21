@@ -1,7 +1,5 @@
 # Shapekit
 
-It might work now
-
 Shapekit is a collision engine for games. It is designed to be used with lame, but that isn't necessary.
 
 Basics of Shapekit:
