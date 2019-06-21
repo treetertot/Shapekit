@@ -44,7 +44,7 @@ mod tests {
         use rand::Rng;
         let mut gen = rand::thread_rng();
         let w = WorldHandle::new();
-        for _ in 0..100 {
+        for _ in 0..1000 {
             let x = gen.gen_range(-99.999, 100.0);
             let y = gen.gen_range(-99.999, 100.0);
             let s1 = w.add_shape(vec!((0.0, 0.0), (100.0, 0.0), (100.0, 100.0), (0.0, 100.0)), (0.0, 0.0));
