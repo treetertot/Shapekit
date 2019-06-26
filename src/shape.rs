@@ -55,18 +55,18 @@ impl Shape {
         Shape{points: points, avg: center, displacement: Vector::new(0.0, 0.0), rotation: None, max: rvec.abs()}
     }
 
-    pub fn from_tuples(tuples: Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
+    pub fn from_tuples(tuples: &Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
         let mut new = Vec::new();
         for pt in tuples {
-            new.push(Vector::from_tuple(pt));
+            new.push(Vector::from_tuple(*pt));
         }
         Shape::new(new, Vector::from_tuple(last))
     }
 
-    pub fn in_place_tuples(tuples: Vec<(f32, f32)>) -> Shape {
+    pub fn in_place_tuples(tuples: &Vec<(f32, f32)>) -> Shape {
         let mut new = Vec::new();
         for pt in tuples {
-            new.push(Vector::from_tuple(pt));
+            new.push(Vector::from_tuple(*pt));
         }
         Shape::in_place(new)
     }

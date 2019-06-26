@@ -34,10 +34,10 @@ impl<T: Clone> World<T> {
 
 pub struct WorldHandle<T: Clone>(Arc<RwLock<World<T>>>);
 impl<T: Clone> WorldHandle<T> {
-    pub fn add_shape(&self, points: Vec<(f32, f32)>, start: (f32, f32), tag: T) -> ShapeHandle<T> {
+    pub fn add_shape(&self, points: &Vec<(f32, f32)>, start: (f32, f32), tag: T) -> ShapeHandle<T> {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start), tag), world: self.0.clone() }
     }
-    pub fn add_in_place(&self, points: Vec<(f32, f32)>, tag: T) -> ShapeHandle<T> {
+    pub fn add_in_place(&self, points: &Vec<(f32, f32)>, tag: T) -> ShapeHandle<T> {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::in_place_tuples(points), tag), world: self.0.clone() }
     }
     pub fn new() -> Self {
