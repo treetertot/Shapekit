@@ -1,7 +1,7 @@
 use crate::vector::Vector;
 use serde::{Serialize, Deserialize};
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct Collision {
-    pub other: usize,
+#[derive(Clone, Debug)]
+pub struct Collision<Tag: Clone> {
+    pub other: Tag,
     pub resolution: Vector,
 }

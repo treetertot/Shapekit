@@ -36,12 +36,39 @@ impl Shape {
         Shape{points: points, avg: center, displacement: start - center, rotation: None, max: rvec.abs()}
     }
 
+    pub fn in_place(points: Vec<Vector>) -> Shape {
+        let mut center = Vector{x: 0.0, y: 0.0};
+        for &point in points.iter() {
+            center = center + point;
+        }
+        center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
+        let mut rad = 0.0;
+        let mut rvec = Vector::new(0.0, 0.0);
+        for &point in points.iter() {
+            let vdis = point - center;
+            let dis = vdis.magnitude();
+            if dis > rad {
+                rad = dis;
+                rvec = vdis;
+            }
+        }
+        Shape{points: points, avg: center, displacement: Vector::new(0.0, 0.0), rotation: None, max: rvec.abs()}
+    }
+
     pub fn from_tuples(tuples: Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
         let mut new = Vec::new();
         for pt in tuples {
             new.push(Vector::from_tuple(pt));
         }
         Shape::new(new, Vector::from_tuple(last))
+    }
+
+    pub fn in_place_tuples(tuples: Vec<(f32, f32)>) -> Shape {
+        let mut new = Vec::new();
+        for pt in tuples {
+            new.push(Vector::from_tuple(pt));
+        }
+        Shape::in_place(new)
     }
 
     pub fn center(&self) -> Vector {
