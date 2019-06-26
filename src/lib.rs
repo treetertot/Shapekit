@@ -25,12 +25,12 @@ mod tests {
     }
     #[test]
     fn checker() {
-        use crate::shape::Shape;
+        /*use crate::shape::Shape;
         use crate::vector::Vector;
         use crate::world::compare;
         use rand::Rng;
         let mut gen = rand::thread_rng();
-        /*for _ in 0..100 {
+        for _ in 0..100 {
             let mut out = Vec::new();
             let x = gen.gen_range(-99.999, 100.0);
             let y = gen.gen_range(-99.999, 100.0);
