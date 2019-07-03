@@ -133,23 +133,16 @@ impl Shape {
         if !self.max_test(other) {
             return None;
         }
-        let mut max = (None, 0.0);
         for point in other.iter_points() {
             if let Some(dist) = self.dist_inside(point) {
-                let mag = dist.magnitude();
-                if mag > max.1 {
-                    max = (Some(dist), mag);
-                }
+                return Some(dist);
             }
         }
         for point in self.iter_points() {
             if let Some(dist) = other.dist_inside(point) {
-                let mag = dist.magnitude();
-                if mag > max.1 {
-                    max = (Some(dist * -1.0), mag);
-                }
+                return Some(dist * -1.0);
             }
         }
-        max.0
+        None
     }
 }
