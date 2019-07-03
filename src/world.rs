@@ -71,10 +71,6 @@ impl<T: Clone> ShapeHandle<T> {
         let mut world = self.world.write().unwrap();
         world.get_shape_mut(self.id).move_by(v);
     }
-    pub fn rotate(&mut self, r: f32) {
-        let mut world = self.world.write().unwrap();
-        world.get_shape_mut(self.id).rotate(r);
-    }
     pub fn center(&self) -> Vector {
         let world = self.world.read().unwrap();
         world.get_shape(self.id).center()

@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use crate::{vector::Vector, lines::{Line, InEQ}};
 
 mod shapeiters;
@@ -12,7 +10,6 @@ pub struct Shape {
     points: Vec<Vector>,
     avg: Vector,
     displacement: Vector,
-    rotation: Option<f32>, //for the use cases I had in mind, many objects will be unrotated, so checking for rotation might be cheaper
     max: Vector,
 }
 
@@ -33,7 +30,7 @@ impl Shape {
                 rvec = vdis;
             }
         }
-        Shape{points: points, avg: center, displacement: start - center, rotation: None, max: rvec.abs()}
+        Shape{points: points, avg: center, displacement: start - center, max: rvec.abs()}
     }
 
     pub fn in_place(points: Vec<Vector>) -> Shape {
@@ -52,7 +49,7 @@ impl Shape {
                 rvec = vdis;
             }
         }
-        Shape{points: points, avg: center, displacement: Vector::new(0.0, 0.0), rotation: None, max: rvec.abs()}
+        Shape{points: points, avg: center, displacement: Vector::new(0.0, 0.0), max: rvec.abs()}
     }
 
     pub fn from_tuples(tuples: &Vec<(f32, f32)>, last: (f32, f32)) -> Shape {
@@ -85,10 +82,7 @@ impl Shape {
 
     #[inline]
     pub fn get_point(&self, index: usize) -> Vector {
-        match self.rotation {
-            Some(ang) => (self.points[index] + self.displacement).rotated_around(self.center(), ang),
-            None => self.points[index] + self.displacement,
-        }
+        self.points[index] + self.displacement
     }
 
     #[inline]
@@ -99,23 +93,6 @@ impl Shape {
     #[inline]
     pub fn move_by(&mut self, by: Vector) {
         self.displacement = self.displacement + by;
-    }
-
-    #[inline]
-    pub fn rotate(&mut self, angle: f32) {
-        match self.rotation {
-            Some(ang) => {
-                let new = ang + angle;
-                if new > PI {
-                    self.rotation = Some(new - (PI * 2.0));
-                } else if new < -PI {
-                    self.rotation = Some(new + (PI * 2.0));
-                } else {
-                    self.rotation = Some(new);
-                }
-            },
-            None => self.rotation = Some(angle),
-        }
     }
 
     fn iter_ineq(&self) -> IneqIter {
@@ -150,21 +127,29 @@ impl Shape {
         }
         smallest
     }
-
+    
+    #[inline]
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
         if !self.max_test(other) {
             return None;
         }
+        let mut max = (None, 0.0);
         for point in other.iter_points() {
             if let Some(dist) = self.dist_inside(point) {
-                return Some(dist);
+                let mag = dist.magnitude();
+                if mag > max.1 {
+                    max = (Some(dist), mag);
+                }
             }
         }
         for point in self.iter_points() {
             if let Some(dist) = other.dist_inside(point) {
-                return Some(dist * -1.0)
+                let mag = dist.magnitude();
+                if mag > max.1 {
+                    max = (Some(dist * -1.0), mag);
+                }
             }
         }
-        None
+        max.0
     }
 }
