@@ -103,6 +103,19 @@ impl Shape {
         PointsIter::new(self)
     }
 
+    pub fn bottom_left(&self) -> Vector {
+        let mut least = self.points[0];
+        for pt in self.iter_points().skip(1) {
+            if pt.x < least.x {
+                least.x = pt.x;
+            }
+            if pt.y < least.y {
+                least.y = pt.y;
+            }
+        }
+        least
+    }
+
     pub fn max_test(&self, other: &Shape) -> bool { // true if could collide
         let (x, y) = (other.center() - self.center()).abs().to_tuple();
         let combined = self.max + other.max;
