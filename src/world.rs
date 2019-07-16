@@ -2,12 +2,10 @@ use crate::shape::Shape;
 use crate::vector::Vector;
 pub mod collision;
 use collision::Collision;
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use std::sync::{Arc, RwLock};
 use std::ops::Drop;
 use std::iter::Iterator;
 
-#[derive(Serialize, Deserialize)]
 struct World<Tag> {
     id_counter: usize,
     shapes: Vec<(usize, Shape, Tag)>,
@@ -34,31 +32,11 @@ impl<T: Clone> World<T> {
 
 pub struct WorldHandle<T: Clone>(Arc<RwLock<World<T>>>);
 impl<T: Clone> WorldHandle<T> {
-    pub fn add_shape(&self, points: &Vec<(f32, f32)>, start: (f32, f32), tag: T) -> ShapeHandle<T> {
-        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::from_tuples(points, start), tag), world: self.0.clone() }
-    }
-    pub fn add_in_place(&self, points: &Vec<(f32, f32)>, tag: T) -> ShapeHandle<T> {
-        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::in_place_tuples(points), tag), world: self.0.clone() }
+    pub fn new_shape(&self, points: Vec<Vector>, tag: T) -> ShapeHandle<T> {
+        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::in_place(points), tag), world: self.0.clone() }
     }
     pub fn new() -> Self {
         WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new()})))
-    }
-}
-impl<T: Clone> Serialize for WorldHandle<T> where T: Serialize {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.0.read().unwrap().serialize(serializer)
-    }
-}
-
-pub struct WorldAndShapeHandles<T: Clone>(WorldHandle<T>, Vec<ShapeHandle<T>>);
-impl<'de, T: Clone> Deserialize<'de> for WorldAndShapeHandles<T> where T: Deserialize<'de> {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let world = Arc::new(RwLock::new(World::deserialize(deserializer)?));
-        let mut handles = Vec::new();
-        for (id, _, _) in world.read().unwrap().shapes.iter() {
-            handles.push(ShapeHandle{ world: world.clone(), id: *id })
-        }
-        Ok(WorldAndShapeHandles(WorldHandle(world), handles))
     }
 }
 
@@ -92,9 +70,6 @@ impl<T: Clone> ShapeHandle<T> {
             }
         }
         CollisionIter { list: list }
-    }
-    pub fn get_id(&self) -> usize {
-        self.id
     }
 }
 impl<T: Clone> Drop for ShapeHandle<T> {
