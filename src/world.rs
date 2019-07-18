@@ -35,6 +35,9 @@ impl<T: Clone> WorldHandle<T> {
     pub fn new_shape(&self, points: Vec<Vector>, tag: T) -> ShapeHandle<T> {
         ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::in_place(points), tag), world: self.0.clone() }
     }
+    pub fn new_centered(&self, points: Vec<Vector>, start: Vector, tag: T) -> ShapeHandle<T> {
+        ShapeHandle{ id: self.0.write().unwrap().add_shape(Shape::new(points, start), tag), world: self.0.clone() }
+    }
     pub fn new() -> Self {
         WorldHandle(Arc::new(RwLock::new(World{id_counter: 0, shapes: Vec::new()})))
     }
