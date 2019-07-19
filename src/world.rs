@@ -58,7 +58,7 @@ impl<T: Clone> ShapeHandle<T> {
     }
     pub fn bottom_left(&self) -> Vector {
         let world = self.world.read().unwrap();
-        world.get_shape(self.id).center()
+        world.get_shape(self.id).bottom_left()
     }
     pub fn collisions(&self) -> CollisionIter<T> {
         let world = self.world.read().unwrap();
