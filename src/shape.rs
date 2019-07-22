@@ -86,7 +86,7 @@ impl Shape {
     }
 
     pub fn bottom_left(&self) -> Vector {
-        let mut least = self.points[0];
+        let mut least = self.get_point(0);
         for pt in self.iter_points().skip(1) {
             if pt.x < least.x {
                 least.x = pt.x;

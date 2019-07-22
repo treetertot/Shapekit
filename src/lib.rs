@@ -55,6 +55,22 @@ mod tests {
             assert_ne!(None, it.next());
         }*/
     }
+    #[test]
+    fn list_points() {
+        use crate::vector::Vector;
+        let basebox: [Vector; 4] = [
+            Vector::new(0.0, 0.0),
+            Vector::new(50.0, 0.0),
+            Vector::new(50.0, 50.0),
+            Vector::new(0.0, 50.0),
+        ];
+        let start = Vector::new(400.0, 490.0);
+        let shapea = crate::shape::Shape::new(basebox.to_vec(), start);
+        for point in shapea.iter_points() {
+            println!("{}", point);
+        }
+        println!("{}", shapea.bottom_left());
+    }
 }
 use std::cmp::PartialEq;
 impl<T> PartialEq for world::collision::Collision<T> where T: PartialEq + Clone {
