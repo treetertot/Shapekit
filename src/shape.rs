@@ -133,7 +133,7 @@ impl Shape {
             if let Some(dist) = self.dist_inside(point) {
                 match returner {
                     None => returner = Some(dist),
-                    Some(val) => if val.magnitude() > dist.magnitude() {
+                    Some(val) => if val.magnitude() < dist.magnitude() {
                         returner = Some(dist)
                     },
                 }
@@ -143,7 +143,7 @@ impl Shape {
             if let Some(dist) = other.dist_inside(point) {
                 match returner {
                     None => returner = Some(dist),
-                    Some(val) => if val.magnitude() > dist.magnitude() {
+                    Some(val) => if val.magnitude() < dist.magnitude() {
                         returner = Some(dist * -1.0)
                     },
                 }
