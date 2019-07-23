@@ -4,7 +4,6 @@ pub mod collision;
 use collision::Collision;
 use std::sync::{Arc, RwLock};
 use std::ops::Drop;
-use std::iter::Iterator;
 
 struct World<Tag> {
     id_counter: usize,
@@ -60,7 +59,7 @@ impl<T: Clone> ShapeHandle<T> {
         let world = self.world.read().unwrap();
         world.get_shape(self.id).bottom_left()
     }
-    pub fn collisions(&self) -> CollisionIter<T> {
+    pub fn collisions(&self) -> Vec<Collision<T>> {
         let world = self.world.read().unwrap();
         let shape_a = world.get_shape(self.id);
         let mut list = Vec::new();
@@ -72,23 +71,12 @@ impl<T: Clone> ShapeHandle<T> {
                 list.push(Collision{ other: info.clone(), resolution: res });
             }
         }
-        CollisionIter { list: list }
+        list
     }
 }
 impl<T: Clone> Drop for ShapeHandle<T> {
     fn drop(&mut self) {
         self.world.write().unwrap().remove_shape(self.id);
-    }
-}
-
-pub struct CollisionIter<T: Clone> {
-    list: Vec<Collision<T>>
-}
-impl<T: Clone> Iterator for CollisionIter<T> {
-    type Item = Collision<T>;
-    #[inline]
-    fn next(&mut self) -> Option<Collision<T>> {
-        self.list.pop()
     }
 }
 
