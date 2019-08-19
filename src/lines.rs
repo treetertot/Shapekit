@@ -79,9 +79,9 @@ impl InEQ {
     #[inline]
     pub fn contains(self, point: Vector) -> bool {
         if self.greater {
-            return self.line.below_point(point);
+            return !self.line.above_point(point);
         }
-        self.line.above_point(point)
+        !self.line.below_point(point)
     }
     #[inline]
     pub fn vec_to(self, point: Vector) -> Vector {
