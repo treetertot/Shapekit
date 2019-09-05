@@ -2,9 +2,7 @@ use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign};
 use std::fmt::{Display, Formatter, Error};
 use std::f32::consts::PI;
 
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Copy, PartialEq, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default)]
 pub struct Vector {
     pub x: f32,
     pub y: f32,
@@ -117,5 +115,14 @@ impl Div<f32> for Vector {
 impl Display for Vector {
     fn fmt(&self, form: &mut Formatter) -> Result<(), Error> {
         write!(form, "<{}, {}>", self.x, self.y)
+    }
+}
+
+pub trait MassConvert {
+    fn to_vectors(&self) -> Vec<Vector>;
+}
+impl MassConvert for &[(f32, f32)] {
+    fn to_vectors(&self) -> Vec<Vector> {
+        self.iter().map(|&(x, y)| {Vector{x: x, y: y}}).collect()
     }
 }
