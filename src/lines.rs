@@ -1,92 +1,115 @@
 use crate::vector::Vector;
-
-#[derive(Clone, Copy)]
 pub struct Line {
     slope: Option<f32>,
-    intercept: f32,
+    constant: f32,
 }
-
 impl Line {
-    pub fn new(pointa: Vector, pointb: Vector) -> Line {
-        if pointa.x == pointb.x {
-            return Line{slope: None, intercept: pointa.x};
+    pub fn through(a: Vector, b: Vector) -> Line {
+        if a.x == b.x {
+            Line {
+                slope: None,
+                constant: a.x,
+            }
+        } else {
+            let m = (a.y - b.y) / (a.x - b.x);
+            Line {
+                slope: Some(m),
+                constant: a.y - (m * a.x),
+            }
         }
-        let m = (pointb.y - pointa.y)/(pointb.x - pointa.x);
-        Line{slope: Some(m), intercept: pointa.y - (m * pointa.x)}
     }
-    #[inline]
-    pub fn to_ineq(self, point: Vector) -> InEQ {
-        let greater = self.below_point(point);
-        InEQ{line: self, greater: greater}
+    pub fn y(&self, x: f32) -> Option<f32> {
+        Some((self.slope? * x) + self.constant)
     }
-    #[inline]
-    pub fn normal_through(self, point: Vector) -> Line {
-        match self.slope {
-            Some(m) => if m == 0.0 {
-                Line{slope: None, intercept: point.x}
-            } else {
-                let m = 1.0/m;
-                Line{slope: Some(m), intercept: point.y - (m * point.x)}
+    pub fn initialize(self, point: Vector) -> InEq {
+        InEq {
+            greater: match self.y(point.x) {
+                Some(val) => point.y > val,
+                None => point.x > self.constant,
             },
-            None => Line{slope: Some(0.0), intercept: point.y},
+            line: self,
         }
     }
-    #[inline]
-    pub fn y(self, x: f32) -> Option<f32> {
-        let m = self.slope?;
-        Some((m * x) + self.intercept)
-    }
-    #[inline]
-    pub fn below_point(self, point: Vector) -> bool {
+    pub fn normal_through(&self, point: Vector) -> Line {
         match self.slope {
-            Some(m) => point.y > (m * point.x) + self.intercept,
-            None => point.x > self.intercept,
+            Some(val) => {
+                if val == 0.0 {
+                    Line {
+                        slope: None,
+                        constant: point.x,
+                    }
+                } else {
+                    let m = 1.0 / val;
+                    Line {
+                        slope: Some(m),
+                        constant: point.y - (m * point.x),
+                    }
+                }
+            }
+            None => Line {
+                slope: Some(0.0),
+                constant: point.y,
+            },
         }
     }
-    #[inline]
-    pub fn above_point(self, point: Vector) -> bool {
+    pub fn intersection(self, b: &Line) -> Option<Vector> {
         match self.slope {
-            Some(m) => point.y < (m * point.x) + self.intercept,
-            None => point.x < self.intercept,
+            Some(m) => match b.slope {
+                Some(m2) => {
+                    let x = (b.constant - self.constant) / (m - m2);
+                    Some(Vector {
+                        x: x,
+                        y: self.y(x)?,
+                    })
+                }
+                None => Some(Vector {
+                    x: b.constant,
+                    y: self.y(b.constant)?,
+                }),
+            },
+            None => match b.slope {
+                Some(_m) => Some(Vector {
+                    x: self.constant,
+                    y: b.y(self.constant)?,
+                }),
+                None => None,
+            },
         }
     }
 }
-
-#[inline]
-pub fn intersection(a: Line, b: Line) -> Option<Vector> {
-    match a.slope {
-        Some(m) => match b.slope {
-            Some(m2) => {
-                let x = (b.intercept - a.intercept)/(m - m2);
-                Some(Vector{x: x, y: a.y(x)?})
-            },
-            None => Some(Vector{x: b.intercept, y: a.y(b.intercept)?}),
-        },
-        None => match b.slope {
-            Some(_m) => Some(Vector{x: a.intercept, y: b.y(a.intercept)?}),
-            None => None,
-        }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct InEQ {
+pub struct InEq {
     line: Line,
     greater: bool,
 }
-
-impl InEQ {
-    #[inline]
-    pub fn contains(self, point: Vector) -> bool {
-        if self.greater {
-            return !self.line.above_point(point);
+impl InEq {
+    pub fn contains(&self, point: Vector) -> bool {
+        match self.line.y(point.x) {
+            Some(val) => {
+                if self.greater {
+                    point.y >= val
+                } else {
+                    point.y <= val
+                }
+            }
+            None => {
+                if self.greater {
+                    point.x >= self.line.constant
+                } else {
+                    point.x <= self.line.constant
+                }
+            }
         }
-        !self.line.below_point(point)
     }
-    #[inline]
-    pub fn vec_to(self, point: Vector) -> Vector {
-        let normal = self.line.normal_through(point);
-        let point_on_line = intersection(self.line, normal).unwrap();
-        point - point_on_line
+    pub fn distance(&self, point: Vector) -> Option<Vector> {
+        if self.contains(point) {
+            return Some(
+                self.line
+                    .normal_through(point)
+                    .intersection(&self.line)
+                    .unwrap()
+                    - point,
+            );
+        }
+        None
     }
 }

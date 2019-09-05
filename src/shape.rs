@@ -1,154 +1,75 @@
-use crate::{vector::Vector, lines::{Line, InEQ}};
-
+use crate::vector::Vector;
 mod shapeiters;
-pub use shapeiters::*;
-
-#[derive(Clone)]
+use shapeiters::*;
+use std::f32;
 pub struct Shape {
-    points: Vec<Vector>,
-    avg: Vector,
-    displacement: Vector,
-    max: Vector,
+    pub points: Vec<Vector>,
+    pub center: Vector,
+    pub displacement: Vector,
 }
-
 impl Shape {
-    pub fn new(points: Vec<Vector>, start: Vector) -> Shape {
-        let mut center = Vector{x: 0.0, y: 0.0};
-        for &point in points.iter() {
-            center = center + point;
+    pub fn new(points: Vec<Vector>) -> Shape {
+        let mut avg = Vector { x: 0.0, y: 0.0 };
+        for &point in &points {
+            avg += point;
         }
-        center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
-        let mut rad = 0.0;
-        let mut rvec = Vector::new(0.0, 0.0);
-        for &point in points.iter() {
-            let vdis = point - center;
-            let dis = vdis.magnitude();
-            if dis > rad {
-                rad = dis;
-                rvec = vdis;
-            }
+        if points.len() != 0 {
+            avg = avg / (points.len() as f32);
         }
-        Shape{points: points, avg: center, displacement: start - center, max: rvec.abs()}
-    }
-
-    pub fn in_place(points: Vec<Vector>) -> Shape {
-        let mut center = Vector{x: 0.0, y: 0.0};
-        for &point in points.iter() {
-            center = center + point;
+        Shape {
+            points: points,
+            center: avg,
+            displacement: Vector { x: 0.0, y: 0.0 },
         }
-        center = Vector{x: center.x/points.len() as f32, y: center.y/points.len() as f32};
-        let mut rad = 0.0;
-        let mut rvec = Vector::new(0.0, 0.0);
-        for &point in points.iter() {
-            let vdis = point - center;
-            let dis = vdis.magnitude();
-            if dis > rad {
-                rad = dis;
-                rvec = vdis;
-            }
+    }
+    fn iter_points<'a>(&'a self) -> PointsIter<'a> {
+        PointsIter {
+            points: self.points.iter(),
+            displacement: self.displacement,
         }
-        Shape{points: points, avg: center, displacement: Vector::new(0.0, 0.0), max: rvec.abs()}
     }
-
-    pub fn center(&self) -> Vector {
-        self.avg + self.displacement
-    }
-
-    #[inline]
-    fn get_line(&self, num: usize) -> Line {
-        if num == 0 {
-            return Line::new(self.get_point(self.points.len() - 1), self.get_point(0));
+    fn iter_sides<'a>(&'a self) -> SidesIter<'a> {
+        let mut iter = self.iter_points().peekable();
+        match iter.peek() {
+            Some(&first) => SidesIter {
+                points: iter,
+                center: self.center + self.displacement,
+                first: first,
+            },
+            None => SidesIter {
+                points: iter,
+                center: Vector::default(),
+                first: Vector::default(),
+            },
         }
-        Line::new(self.get_point(num - 1), self.get_point(num))
     }
-
-    #[inline]
-    pub fn get_point(&self, index: usize) -> Vector {
-        self.points[index] + self.displacement
-    }
-
-    #[inline]
-    fn get_ineq(&self, index: usize) -> InEQ {
-        self.get_line(index).to_ineq(self.center())
-    }
-
-    #[inline]
-    pub fn move_by(&mut self, by: Vector) {
-        self.displacement = self.displacement + by;
-    }
-
-    fn iter_ineq(&self) -> IneqIter {
-        IneqIter::new(self)
-    }
-
-    pub fn iter_points(&self) -> PointsIter {
-        PointsIter::new(self)
-    }
-
-    pub fn bottom_left(&self) -> Vector {
-        let mut least = self.get_point(0);
-        for pt in self.iter_points().skip(1) {
-            if pt.x < least.x {
-                least.x = pt.x;
-            }
-            if pt.y < least.y {
-                least.y = pt.y;
-            }
-        }
-        least
-    }
-
-    pub fn max_test(&self, other: &Shape) -> bool { // true if could collide
-        let (x, y) = (other.center() - self.center()).abs().to_tuple();
-        let combined = self.max + other.max;
-        x < combined.x && y < combined.y
-    }
-
-    #[inline]
     fn dist_inside(&self, point: Vector) -> Option<Vector> {
-        let mut smallest = None;
-        for ieq in self.iter_ineq() {
-            if ieq.contains(point) {
-                let dist = ieq.vec_to(point);
-                match smallest {
-                    None => smallest = Some(dist),
-                    Some(val) => if dist.magnitude() < val.magnitude() {
-                        smallest = Some(dist)
-                    },
+        let mut out: Option<(Vector, f32)> = None;
+        for side in self.iter_sides() {
+            let dist = side.distance(point)?;
+            let mag = dist.magnitude();
+            match out {
+                Some(val) => {
+                    if mag < val.1 {
+                        out = Some((dist, mag))
+                    }
                 }
-            } else {
-                return None;
+                None => out = Some((dist, mag)),
             }
         }
-        smallest
+        Some(out?.0)
     }
-    
-    #[inline]
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
-        if !self.max_test(other) {
-            return None;
-        }
-        let mut returner = None;
-        for point in other.iter_points() {
-            if let Some(dist) = self.dist_inside(point) {
-                match returner {
-                    None => returner = Some(dist),
-                    Some(val) => if val.magnitude() < dist.magnitude() {
-                        returner = Some(dist)
-                    },
-                }
-            }
-        }
         for point in self.iter_points() {
             if let Some(dist) = other.dist_inside(point) {
-                match returner {
-                    None => returner = Some(dist),
-                    Some(val) => if val.magnitude() < dist.magnitude() {
-                        returner = Some(dist * -1.0)
-                    },
-                }
+                return Some(dist);
             }
         }
-        returner
+        for point in other.iter_points() {
+            if let Some(dist) = self.dist_inside(point) {
+                return Some(dist);
+            }
+        }
+        None
     }
 }

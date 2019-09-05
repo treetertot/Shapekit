@@ -1,53 +1,29 @@
-use crate::lines::InEQ;
-use crate::shape::Shape;
+use crate::lines::{InEq, Line};
 use crate::vector::Vector;
-
-use std::iter::Iterator;
-
-pub struct IneqIter<'a> {
-    shape: &'a Shape,
-    counter: usize,
-}
-
-impl<'a> IneqIter<'a> {
-    pub fn new(shape: &Shape) -> IneqIter {
-        IneqIter{shape: shape, counter: 0}
-    }
-}
-
-impl<'a> Iterator for IneqIter<'a> {
-    type Item = InEQ;
-
-    #[inline]
-    fn next(&mut self) -> Option<InEQ> {
-        self.counter += 1;
-        if self.counter - 1 < self.shape.points.len() {
-            return Some(self.shape.get_ineq(self.counter - 1));
-        }
-        None
-    }
-}
-
+use std::iter::Peekable;
+use std::slice::Iter;
 pub struct PointsIter<'a> {
-    shape: &'a Shape,
-    counter: usize,
+    pub points: Iter<'a, Vector>,
+    pub displacement: Vector,
 }
-
-impl<'a> PointsIter<'a> {
-    pub fn new(shape: &Shape) -> PointsIter {
-        PointsIter{shape: shape, counter: 0}
-    }
-}
-
 impl<'a> Iterator for PointsIter<'a> {
     type Item = Vector;
-
-    #[inline]
     fn next(&mut self) -> Option<Vector> {
-        self.counter += 1;
-        if self.counter - 1 < self.shape.points.len() {
-            return Some(self.shape.get_point(self.counter - 1));
+        Some(*self.points.next()? + self.displacement)
+    }
+}
+pub struct SidesIter<'a> {
+    pub points: Peekable<PointsIter<'a>>,
+    pub center: Vector,
+    pub first: Vector,
+}
+impl<'a> Iterator for SidesIter<'a> {
+    type Item = InEq;
+    fn next(&mut self) -> Option<InEq> {
+        let a = self.points.next()?;
+        match self.points.peek() {
+            Some(&b) => Some(Line::through(a, b).initialize(self.center)),
+            None => Some(Line::through(a, self.first).initialize(self.center)),
         }
-        None
     }
 }

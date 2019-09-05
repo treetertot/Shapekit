@@ -1,10 +1,10 @@
-use std::ops::{Add, Sub, Mul, AddAssign, SubAssign};
+use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign};
 use std::fmt::{Display, Formatter, Error};
 use std::f32::consts::PI;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, PartialEq, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, PartialEq, Debug, Deserialize, Serialize, Default)]
 pub struct Vector {
     pub x: f32,
     pub y: f32,
@@ -101,6 +101,16 @@ impl Mul<f32> for Vector {
     #[inline]
     fn mul(self, other: f32) -> Self {
         Vector{x: self.x * other, y: self.y * other}
+    }
+}
+
+impl Div<f32> for Vector {
+    type Output = Vector;
+    fn div(self, other: f32) -> Self {
+        Vector {
+            x: self.x / other,
+            y: self.y / other,
+        }
     }
 }
 
