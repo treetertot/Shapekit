@@ -10,7 +10,10 @@ struct Item<T: Send + Sync + Clone> {
 }
 pub struct PhysicsWorld<T: Send + Sync + Clone>(Arc<RwLock<Vec<(usize, Mutex<Item<T>>)>>>);
 impl<T: Send + Sync + Clone> PhysicsWorld<T> {
-    pub fn add_shape(&self, points: Vec<Vector>, tag: T) {
+    pub fn new() -> PhysicsWorld<T> {
+        PhysicsWorld(Arc::new(RwLock::new(Vec::new())))
+    }
+    pub fn add_shape(&self, points: Vec<Vector>, tag: T) -> ShapeHandle<T> {
         let shape = Shape::new(points);
         let mut guard = self.0.write().unwrap();
         let count = match guard.last() {
@@ -26,6 +29,10 @@ impl<T: Send + Sync + Clone> PhysicsWorld<T> {
             }),
         );
         guard.push(container);
+        ShapeHandle {
+            parent: self.0.clone(),
+            id: count,
+        }
     }
 }
 pub struct ShapeHandle<T: Send + Sync + Clone> {

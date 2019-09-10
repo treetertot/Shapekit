@@ -60,16 +60,23 @@ impl Shape {
         Some(out?.0)
     }
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
+        let mut collisions = Vec::new();
         for point in self.iter_points() {
             if let Some(dist) = other.dist_inside(point) {
-                return Some(dist);
+                collisions.push(dist);
             }
         }
         for point in other.iter_points() {
             if let Some(dist) = self.dist_inside(point) {
-                return Some(dist);
+                collisions.push(dist * -1.0);
             }
         }
-        None
+        let mut max = *collisions.first()?;
+        for res in collisions.into_iter().skip(1) {
+            if res.magnitude() > max.magnitude() {
+                max = res;
+            }
+        }
+        Some(max)
     }
 }

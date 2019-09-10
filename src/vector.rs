@@ -1,8 +1,8 @@
-use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign};
+use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, Deref};
 use std::fmt::{Display, Formatter, Error};
 use std::f32::consts::PI;
 
-#[derive(Clone, Copy, PartialEq, Debug, Default)]
+#[derive(Clone, Copy, PartialEq, Debug, Default, PartialOrd)]
 pub struct Vector {
     pub x: f32,
     pub y: f32,
@@ -121,8 +121,15 @@ impl Display for Vector {
 pub trait MassConvert {
     fn to_vectors(&self) -> Vec<Vector>;
 }
-impl MassConvert for &[(f32, f32)] {
+
+impl MassConvert for [(f32, f32)] {
     fn to_vectors(&self) -> Vec<Vector> {
         self.iter().map(|&(x, y)| {Vector{x: x, y: y}}).collect()
+    }
+}
+
+impl<T> MassConvert for T where T: Deref<Target=[(f32, f32)]> {
+    fn to_vectors(&self) -> Vec<Vector> {
+        (*self).iter().map(|&(x, y)| {Vector{x: x, y: y}}).collect()
     }
 }
