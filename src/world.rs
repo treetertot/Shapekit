@@ -1,128 +1,96 @@
 use crate::shape::Shape;
 use crate::vector::Vector;
-use std::mem;
 use std::ops::Drop;
-use std::sync::{Arc, Mutex, RwLock};
-struct Item<T: Send + Sync + Clone> {
-    shape: Shape,
-    tag: T,
-    collisions: Option<Vec<(Vector, T)>>,
-}
-pub struct PhysicsWorld<T: Send + Sync + Clone>(Arc<RwLock<Vec<(usize, Mutex<Item<T>>)>>>);
-impl<T: Send + Sync + Clone> PhysicsWorld<T> {
+use std::sync::{Arc, RwLock};
+
+#[derive(Clone)]
+pub struct PhysicsWorld<T: 'static + Clone + Send + Sync>(
+    Arc<RwLock<Vec<(usize, T, RwLock<Shape>)>>>,
+);
+impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
     pub fn new() -> PhysicsWorld<T> {
         PhysicsWorld(Arc::new(RwLock::new(Vec::new())))
     }
     pub fn add_shape(&self, points: Vec<Vector>, tag: T) -> ShapeHandle<T> {
-        let shape = Shape::new(points);
         let mut guard = self.0.write().unwrap();
         let count = match guard.last() {
-            Some((num, _)) => num + 1,
+            Some((val, _, _)) => val + 1,
             None => 0,
         };
-        let container = (
-            count,
-            Mutex::new(Item {
-                shape: shape,
-                tag: tag,
-                collisions: None,
-            }),
-        );
-        guard.push(container);
+        guard.push((count, tag, RwLock::new(Shape::new(points))));
         ShapeHandle {
-            parent: self.0.clone(),
+            world: self.clone(),
             id: count,
         }
     }
+    pub fn add_shapes(&self, shapes: Vec<(Vec<Vector>, T)>) -> Vec<ShapeHandle<T>> {
+        let mut guard = self.0.write().unwrap();
+        let mut count = match guard.last() {
+            Some((val, _, _)) => val + 1,
+            None => 0,
+        };
+        let mut out = Vec::with_capacity(shapes.len());
+        for (points, tag) in shapes {
+            guard.push((count, tag, RwLock::new(Shape::new(points))));
+            out.push(ShapeHandle {
+                world: self.clone(),
+                id: count,
+            });
+            count += 1;
+        }
+        out
+    }
 }
-pub struct ShapeHandle<T: Send + Sync + Clone> {
-    parent: Arc<RwLock<Vec<(usize, Mutex<Item<T>>)>>>,
+
+pub struct ShapeHandle<T: 'static + Clone + Send + Sync> {
+    world: PhysicsWorld<T>,
     id: usize,
 }
-impl<T: Send + Sync + Clone> ShapeHandle<T> {
-    pub fn collisions(&self) -> Vec<(Vector, T)> {
-        let readable = self.parent.read().unwrap();
-        let index = get_index(&readable, self.id);
-        let mut guard = readable[index].1.lock().unwrap();
-        match &mut guard.collisions {
-            Some(_cols) => {
-                let mut capture = None;
-                mem::swap(&mut guard.collisions, &mut capture);
-                return capture.unwrap();
-            }
-            None => (),
-        }
-        mem::drop(guard);
-        mem::drop(readable);
-        let mut writeable = self.parent.write().unwrap();
-        for (indexa, mut itema) in writeable
-            .iter()
-            .map(|(_id, mutitem)| mutitem.lock().unwrap())
-            .enumerate()
-        {
-            match itema.collisions {
-                Some(_) => (),
-                None => itema.collisions = Some(Vec::new()),
-            }
-            for mut itemb in writeable
-                .iter()
-                .map(|(_id, mutitem)| mutitem.lock().unwrap())
-                .skip(indexa + 1)
-            {
-                if let Some(res) = itema.shape.resolve(&itemb.shape) {
-                    match &mut itema.collisions {
-                        Some(list) => list.push((res, itemb.tag.clone())),
-                        None => itema.collisions = Some(vec![(res, itemb.tag.clone())]),
-                    }
-                    match &mut itemb.collisions {
-                        Some(list) => list.push((res * -1.0, itema.tag.clone())),
-                        None => itema.collisions = Some(vec![(res * -1.0, itema.tag.clone())]),
-                    }
-                }
-            }
-        }
-        let mut capture = None;
-        mem::swap(
-            &mut writeable[index].1.lock().unwrap().collisions,
-            &mut capture,
-        );
-        match capture {
-            Some(val) => val,
-            None => Vec::new(),
-        }
-    }
-    pub fn move_by(&self, v: Vector) {
-        let readable = self.parent.read().unwrap();
-        let mut guard = readable[get_index(&readable, self.id)].1.lock().unwrap();
-        guard.shape.displacement += v;
-    }
+impl<T: 'static + Clone + Send + Sync> ShapeHandle<T> {
     pub fn points(&self) -> Vec<Vector> {
-        let readable = self.parent.read().unwrap();
-        let guard = readable[get_index(&readable, self.id)].1.lock().unwrap();
-        guard
-            .shape
-            .points
-            .clone()
-            .into_iter()
-            .map(|point| point + guard.shape.displacement)
-            .collect()
+        let guard = self.world.0.read().unwrap();
+        let index = get_index(&guard, self.id);
+        let new_guard = guard[index].2.read().unwrap();
+        new_guard.iter_points().collect()
     }
     pub fn tag(&self) -> T {
-        let readable = self.parent.read().unwrap();
-        let guard = readable[get_index(&readable, self.id)].1.lock().unwrap();
-        guard.tag.clone()
+        let guard = self.world.0.read().unwrap();
+        let index = get_index(&guard, self.id);
+        guard[index].1.clone()
+    }
+    pub fn move_by(&self, v: Vector) {
+        let guard = self.world.0.read().unwrap();
+        let index = get_index(&guard, self.id);
+        let mut new_guard = guard[index].2.write().unwrap();
+        new_guard.displacement += v;
+    }
+    pub fn collisions(&self) -> Vec<(Vector, T)> {
+        let guard = self.world.0.read().unwrap();
+        let index = get_index(&guard, self.id);
+        let new_guard = guard[index].2.read().unwrap();
+        guard
+            .iter()
+            .filter(|(id, _, _)| *id != self.id)
+            .map(|(_, tag, shapelock)| (new_guard.resolve(&shapelock.read().unwrap()), tag.clone()))
+            .filter(|(maybevec, _tag)| maybevec.is_some())
+            .map(|(vec, tag)| (vec.unwrap(), tag))
+            .collect()
     }
 }
-impl<T: Send + Sync + Clone> Drop for ShapeHandle<T> {
+
+impl<T: 'static + Clone + Send + Sync> Drop for ShapeHandle<T> {
     fn drop(&mut self) {
-        let mut writeable = self.parent.write().unwrap();
-        let index = get_index(&writeable, self.id);
-        writeable.remove(index);
+        let mut guard = self.world.0.write().unwrap();
+        let index = get_index(&guard, self.id);
+        guard.remove(index);
     }
 }
-fn get_index<T: Send + Sync + Clone>(list: &Vec<(usize, Mutex<Item<T>>)>, id: usize) -> usize {
-    match list.binary_search_by(|(num, _)| num.cmp(&id)) {
-        Ok(val) => val,
-        Err(_) => panic!("Shape not found"),
-    }
+
+fn get_index<T: 'static + Clone + Send + Sync>(
+    collection: &[(usize, T, RwLock<Shape>)],
+    id: usize,
+) -> usize {
+    collection
+        .binary_search_by_key(&id, |(key, _, _)| *key)
+        .unwrap()
 }

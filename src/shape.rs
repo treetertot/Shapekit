@@ -22,7 +22,7 @@ impl Shape {
             displacement: Vector { x: 0.0, y: 0.0 },
         }
     }
-    fn iter_points<'a>(&'a self) -> PointsIter<'a> {
+    pub fn iter_points<'a>(&'a self) -> PointsIter<'a> {
         PointsIter {
             points: self.points.iter(),
             displacement: self.displacement,
