@@ -132,14 +132,18 @@ impl Display for Vector {
 }
 
 pub trait MassConvert {
-    fn to_vectors(self) -> Vec<Vector>;
+    fn to_vectors(&self) -> Vec<Vector>;
 }
 
-impl<T> MassConvert for T where
-T: Iterator<Item=(f32, f32)>
+impl<T> MassConvert for T
+where
+    T: Deref<Target = [(f32, f32)]>,
 {
-    fn to_vectors(self) -> Vec<Vector> {
-        self.into_iter().map(|(a, b)| Vector::new(a, b)).collect()
+    fn to_vectors(&self) -> Vec<Vector> {
+        self
+            .iter()
+            .map(|&(x, y)| Vector { x: x, y: y })
+            .collect()
     }
 }
 
