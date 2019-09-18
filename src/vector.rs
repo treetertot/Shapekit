@@ -147,6 +147,12 @@ where
     }
 }
 
+impl MassConvert for [(f32, f32)] {
+    fn to_vectors(&self) -> Vec<Vector> {
+        self.iter().map(|&(x, y)| Vector { x: x, y: y }).collect()
+    }
+}
+
 impl cmp::PartialEq for Vector {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y
