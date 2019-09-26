@@ -8,5 +8,3 @@ When a ShapeHandle goes out of scope, the corresponding shape is also removed. (
 To generate the collisions, call run on the worldhandle.
 Use Vector types to move shapes and f32s to rotate them.
 Have fun!
-
-It also uses serde to load/write worlds to files.

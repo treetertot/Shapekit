@@ -86,16 +86,16 @@ impl InEq {
         match self.line.y(point.x) {
             Some(val) => {
                 if self.greater {
-                    point.y >= val
+                    point.y > val
                 } else {
-                    point.y <= val
+                    point.y < val
                 }
             }
             None => {
                 if self.greater {
-                    point.x >= self.line.constant
+                    point.x > self.line.constant
                 } else {
-                    point.x <= self.line.constant
+                    point.x < self.line.constant
                 }
             }
         }

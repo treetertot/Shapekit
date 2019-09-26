@@ -17,7 +17,19 @@ impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
             Some((val, _, _)) => val + 1,
             None => 0,
         };
-        guard.push((count, tag, RwLock::new(Shape::new(points))));
+        let mut new_points = Vec::with_capacity(points.len());
+        for i in 0..points.len()-1 {
+            new_points.push(points[i]);
+            new_points.push((points[i] + points[i+1])/2.0);
+        }
+        match points.last() {
+            Some(last) => {
+                new_points.push(*last);
+                new_points.push((*last + *points.first().unwrap())/2.0);
+            },
+            None => (),
+        }
+        guard.push((count, tag, RwLock::new(Shape::new(new_points))));
         ShapeHandle {
             world: self.clone(),
             id: count,
