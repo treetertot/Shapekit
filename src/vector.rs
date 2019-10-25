@@ -140,10 +140,7 @@ where
     T: Deref<Target = [(f32, f32)]>,
 {
     fn to_vectors(&self) -> Vec<Vector> {
-        self
-            .iter()
-            .map(|&(x, y)| Vector { x: x, y: y })
-            .collect()
+        self.iter().map(|&(x, y)| Vector { x: x, y: y }).collect()
     }
 }
 

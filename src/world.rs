@@ -18,15 +18,15 @@ impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
             None => 0,
         };
         let mut new_points = Vec::with_capacity(points.len());
-        for i in 0..points.len()-1 {
+        for i in 0..points.len() - 1 {
             new_points.push(points[i]);
-            new_points.push((points[i] + points[i+1])/2.0);
+            new_points.push((points[i] + points[i + 1]) / 2.0);
         }
         match points.last() {
             Some(last) => {
                 new_points.push(*last);
-                new_points.push((*last + *points.first().unwrap())/2.0);
-            },
+                new_points.push((*last + *points.first().unwrap()) / 2.0);
+            }
             None => (),
         }
         guard.push((count, tag, RwLock::new(Shape::new(new_points))));

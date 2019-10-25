@@ -60,23 +60,22 @@ impl Shape {
         Some(out?.0)
     }
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
-        let mut collisions = Vec::new();
-        for point in self.iter_points() {
-            if let Some(dist) = other.dist_inside(point) {
-                collisions.push(dist);
-            }
-        }
-        for point in other.iter_points() {
-            if let Some(dist) = self.dist_inside(point) {
-                collisions.push(dist * -1.0);
-            }
-        }
-        let mut max = *collisions.first()?;
-        for res in collisions.into_iter().skip(1) {
-            if res.magnitude() > max.magnitude() {
-                max = res;
-            }
-        }
-        Some(max)
+        self.iter_points()
+            .filter_map(|point| other.dist_inside(point))
+            .chain(
+                other
+                    .iter_points()
+                    .filter_map(|point| Some(other.dist_inside(point)? * -1.0)),
+            )
+            .fold(None, |prev, new_pt| match prev {
+                Some(prev) => {
+                    if prev.magnitude() < new_pt.magnitude() {
+                        Some(new_pt)
+                    } else {
+                        Some(prev)
+                    }
+                }
+                None => Some(new_pt),
+            })
     }
 }
