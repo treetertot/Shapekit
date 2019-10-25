@@ -60,22 +60,26 @@ impl Shape {
         Some(out?.0)
     }
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
-        self.iter_points()
-            .filter_map(|point| other.dist_inside(point))
-            .chain(
-                other
-                    .iter_points()
-                    .filter_map(|point| Some(other.dist_inside(point)? * -1.0)),
-            )
-            .fold(None, |prev, new_pt| match prev {
-                Some(prev) => {
-                    if prev.magnitude() < new_pt.magnitude() {
-                        Some(new_pt)
-                    } else {
-                        Some(prev)
+        Some(
+            self.iter_points()
+                .filter_map(|point| other.dist_inside(point))
+                .chain(
+                    other
+                        .iter_points()
+                        .filter_map(|point| Some(other.dist_inside(point)? * -1.0)),
+                )
+                .fold(None, |prev, new_pt| match prev {
+                    Some((mag, vec)) => {
+                        let new_mag = new_pt.magnitude();
+                        if mag < new_pt.magnitude() {
+                            Some((new_mag, new_pt))
+                        } else {
+                            Some((mag, vec))
+                        }
                     }
-                }
-                None => Some(new_pt),
-            })
+                    None => Some((new_pt.magnitude(), new_pt)),
+                })?
+                .1,
+        )
     }
 }
