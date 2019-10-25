@@ -2,8 +2,11 @@ use crate::vector::Vector;
 mod shapeiters;
 use shapeiters::*;
 use std::f32;
+use std::slice::Iter;
+
 pub struct Shape {
     pub points: Vec<Vector>,
+    pub moved_points: Vec<Vector>,
     pub center: Vector,
     pub displacement: Vector,
 }
@@ -17,16 +20,14 @@ impl Shape {
             avg = avg / (points.len() as f32);
         }
         Shape {
-            points: points,
+            points: points.clone(),
+            moved_points: points,
             center: avg,
             displacement: Vector { x: 0.0, y: 0.0 },
         }
     }
-    pub fn iter_points<'a>(&'a self) -> PointsIter<'a> {
-        PointsIter {
-            points: self.points.iter(),
-            displacement: self.displacement,
-        }
+    pub fn iter_points<'a>(&'a self) -> Iter<'a, Vector> {
+        self.moved_points.iter()
     }
     fn iter_sides<'a>(&'a self) -> SidesIter<'a> {
         let mut iter = self.iter_points().peekable();
@@ -34,7 +35,7 @@ impl Shape {
             Some(&first) => SidesIter {
                 points: iter,
                 center: self.center + self.displacement,
-                first: first,
+                first: *first,
             },
             None => SidesIter {
                 points: iter,
@@ -62,11 +63,11 @@ impl Shape {
     pub fn resolve(&self, other: &Shape) -> Option<Vector> {
         Some(
             self.iter_points()
-                .filter_map(|point| other.dist_inside(point))
+                .filter_map(|point| other.dist_inside(*point))
                 .chain(
                     other
                         .iter_points()
-                        .filter_map(|point| Some(other.dist_inside(point)? * -1.0)),
+                        .filter_map(|point| Some(other.dist_inside(*point)? * -1.0)),
                 )
                 .fold(None, |prev, new_pt| match prev {
                     Some((mag, vec)) => {
