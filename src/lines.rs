@@ -76,6 +76,16 @@ impl Line {
             },
         }
     }
+    pub fn intersection_segment(self, other: &Line, start: Vector, end: Vector) -> Option<Vector> {
+        let isect = self.intersection(other)?;
+        if ((start.x <= isect.x && isect.x <= end.x) || (start.x >= isect.x && isect.x >= end.x))
+            && ((start.y <= isect.y && isect.y <= end.y)
+                || (start.y >= isect.y && isect.y >= end.y))
+        {
+            return Some(isect);
+        }
+        None
+    }
 }
 pub struct InEq {
     line: Line,

@@ -52,6 +52,39 @@ impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
         }
         out
     }
+    pub fn raycast(&self, start: Vector, angle: f32) -> Vec<(f32, T)> {
+        let mut out = Vec::new();
+        for (tag, shape) in self
+            .0
+            .read()
+            .unwrap()
+            .iter()
+            .map(|(_, tag, lock)| (tag, lock.read().unwrap()))
+        {
+            if let Some(point) = shape.receive_ray(start, angle) {
+                out.push((point.magnitude(), tag.clone()));
+            }
+        }
+        out
+    }
+    pub fn raycast_nearest(&self, start: Vector, angle: f32) -> Option<(f32, T)> {
+        self.0
+            .read()
+            .unwrap()
+            .iter()
+            .map(|(_, tag, lock)| (tag, lock.read().unwrap()))
+            .filter_map(|(tag, shape)| Some((shape.receive_ray(start, angle)?, tag.clone())))
+            .fold(None, |prev, new_val| match prev {
+                Some(prev) => {
+                    if new_val.0.magnitude() < prev.0 {
+                        Some((new_val.0.magnitude(), new_val.1))
+                    } else {
+                        Some(prev)
+                    }
+                }
+                None => Some((new_val.0.magnitude(), new_val.1)),
+            })
+    }
 }
 
 pub struct ShapeHandle<T: 'static + Clone + Send + Sync> {

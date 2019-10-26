@@ -25,4 +25,16 @@ mod tests {
         use crate::vector::Vector;
         assert_eq!(Vector { x: 1.0, y: 0.0 } > Vector { x: 0.0, y: 1.1 }, false);
     }
+    #[test]
+    fn raycast_test() {
+        use crate::vector::MassConvert;
+        use crate::vector::Vector;
+        use crate::world::PhysicsWorld;
+        let world = PhysicsWorld::new();
+        let _shape_a = world.add_shape(
+            vec![(0.0, 0.0), (0.0, 10.0), (10.0, 10.0), (10.0, 0.0)].to_vectors(),
+            (),
+        );
+        assert_ne!(world.raycast_nearest(Vector::new(-1.0, -1.0), 1.0), None);
+    }
 }
