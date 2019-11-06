@@ -1,7 +1,12 @@
 [package]
 name = "shapekit"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["joshua"]
 edition = "2018"
 
+[features]
+default = []
+nalgebra_cnv = ["nalgebra"]
+
 [dependencies]
+nalgebra = { version = "0.18", optional = true }

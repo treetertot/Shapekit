@@ -1,7 +1,8 @@
 mod lines;
-mod shape;
+pub mod shape;
 pub mod vector;
 pub mod world;
+pub mod iterator_based;
 
 #[cfg(test)]
 mod tests {

@@ -103,4 +103,10 @@ impl Shape {
                 None => Some(new_val),
             })
     }
+    pub fn move_by(&mut self, by: Vector) {
+        self.displacement += by;
+        for (&point, point_dest) in self.points.iter().zip(self.moved_points.iter_mut()) {
+            *point_dest = point + self.center;
+        }
+    }
 }

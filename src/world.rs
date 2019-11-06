@@ -107,13 +107,7 @@ impl<T: 'static + Clone + Send + Sync> ShapeHandle<T> {
         let guard = self.world.0.read().unwrap();
         let index = get_index(&guard, self.id);
         let mut new_guard = guard[index].2.write().unwrap();
-        new_guard.displacement += v;
-        let disp = new_guard.displacement;
-        let mut mvd = Vec::with_capacity(new_guard.points.len());
-        for &pt in new_guard.points.iter() {
-            mvd.push(pt + disp);
-        }
-        new_guard.moved_points = mvd;
+        new_guard.move_by(v);
     }
     pub fn collisions(&self) -> Vec<(Vector, T)> {
         let guard = self.world.0.read().unwrap();

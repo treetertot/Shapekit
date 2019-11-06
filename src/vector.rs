@@ -66,6 +66,11 @@ impl Vector {
             y: self.y.abs(),
         }
     }
+
+    #[cfg(feature = "nalgebra_cnv")]
+    pub fn to_nalg(self) -> nalgebra::Vector2 {
+        nalgebra::Vector2::new(self.x, self.y)
+    }
 }
 
 impl Add for Vector {
@@ -159,5 +164,12 @@ impl cmp::PartialEq for Vector {
 impl cmp::PartialOrd for Vector {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         self.magnitude().partial_cmp(&other.magnitude())
+    }
+}
+
+#[cfg(feature = "nalgebra_cnv")]
+impl From<nalgebra::Vector2> for Vector {
+    fn from(nvec: nalgebra::Vector2) -> Vector {
+        Vector::new(nvec.x, nvec.y)
     }
 }
