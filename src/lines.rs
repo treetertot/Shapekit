@@ -1,4 +1,6 @@
 use crate::vector::Vector;
+
+#[derive(Clone, Copy)]
 pub struct Line {
     slope: Option<f32>,
     constant: f32,
@@ -87,6 +89,8 @@ impl Line {
         None
     }
 }
+
+#[derive(Clone, Copy)]
 pub struct InEq {
     line: Line,
     greater: bool,

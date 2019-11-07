@@ -1,7 +1,8 @@
 use std::cmp;
 use std::f32::consts::PI;
 use std::fmt::{Display, Error, Formatter};
-use std::ops::{Add, AddAssign, Deref, Div, Mul, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, Mul, Sub, SubAssign};
+use crate::shape::Shape;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vector {
@@ -137,21 +138,16 @@ impl Display for Vector {
 }
 
 pub trait MassConvert {
-    fn to_vectors(&self) -> Vec<Vector>;
+    fn to_vectors(self) -> Vec<Vector>;
+    fn to_shape(self) -> Shape;
 }
 
-impl<T> MassConvert for T
-where
-    T: Deref<Target = [(f32, f32)]>,
-{
-    fn to_vectors(&self) -> Vec<Vector> {
-        self.iter().map(|&(x, y)| Vector { x: x, y: y }).collect()
+impl<'a, V: ToVector, T: IntoIterator<Item=V>> MassConvert for T {
+    fn to_vectors(self) -> Vec<Vector> {
+        self.into_iter().map(|v| v.cnv()).collect()
     }
-}
-
-impl MassConvert for [(f32, f32)] {
-    fn to_vectors(&self) -> Vec<Vector> {
-        self.iter().map(|&(x, y)| Vector { x: x, y: y }).collect()
+    fn to_shape(self) -> Shape {
+        Shape::new(self.to_vectors())
     }
 }
 
@@ -171,5 +167,39 @@ impl cmp::PartialOrd for Vector {
 impl From<nalgebra::Vector2> for Vector {
     fn from(nvec: nalgebra::Vector2) -> Vector {
         Vector::new(nvec.x, nvec.y)
+    }
+}
+
+pub trait ToVector {
+    fn cnv(self) -> Vector;
+}
+
+impl ToVector for Vector {
+    fn cnv(self) -> Vector {
+        self
+    }
+}
+
+impl ToVector for &Vector {
+    fn cnv(self) -> Vector {
+        *self
+    }
+}
+
+impl ToVector for (f32, f32) {
+    fn cnv(self) -> Vector {
+        Vector::new(self.0, self.1)
+    }
+}
+
+impl ToVector for &(f32, f32) {
+    fn cnv(self) -> Vector {
+        Vector::new(self.0, self.1)
+    }
+}
+
+impl ToVector for (&f32, &f32) {
+    fn cnv(self) -> Vector {
+        Vector::new(*self.0, *self.1)
     }
 }

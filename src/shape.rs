@@ -4,6 +4,7 @@ use crate::lines::*;
 use shapeiters::*;
 use std::f32;
 use std::slice::Iter;
+use std::cmp::PartialEq;
 
 pub struct Shape {
     pub points: Vec<Vector>,
@@ -84,10 +85,8 @@ impl Shape {
                 .1,
         )
     }
-    pub fn receive_ray(&self, start: Vector, angle: f32) -> Option<Vector> {
-        let calibrator = Vector::from_mag_dir(1.0, angle) + start;
-        let ray = Line::through(start, calibrator);
-        let normal = ray.normal_through(start).initialize(calibrator);
+    pub fn receive_ray(&self, ray: Line, normal: InEq) -> Option<Vector> {
+
         self.iter_sides()
             .mangle()
             .filter_map(|(line, start, end)| line.intersection_segment(&ray, start, end))
@@ -108,5 +107,11 @@ impl Shape {
         for (&point, point_dest) in self.points.iter().zip(self.moved_points.iter_mut()) {
             *point_dest = point + self.center;
         }
+    }
+}
+
+impl PartialEq for Shape {
+    fn eq(&self, right: &Self) -> bool {
+        self.moved_points == right.moved_points
     }
 }

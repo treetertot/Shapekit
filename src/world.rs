@@ -2,6 +2,7 @@ use crate::shape::Shape;
 use crate::vector::Vector;
 use std::ops::Drop;
 use std::sync::{Arc, RwLock};
+use crate::lines::Line;
 
 #[derive(Clone)]
 pub struct PhysicsWorld<T: 'static + Clone + Send + Sync>(
@@ -54,6 +55,9 @@ impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
     }
     pub fn raycast(&self, start: Vector, angle: f32) -> Vec<(f32, T)> {
         let mut out = Vec::new();
+        let calibrator = Vector::from_mag_dir(1.0, angle) + start;
+        let ray = Line::through(start, calibrator);
+        let normal = ray.normal_through(start).initialize(calibrator);
         for (tag, shape) in self
             .0
             .read()
@@ -61,19 +65,22 @@ impl<T: 'static + Clone + Send + Sync> PhysicsWorld<T> {
             .iter()
             .map(|(_, tag, lock)| (tag, lock.read().unwrap()))
         {
-            if let Some(point) = shape.receive_ray(start, angle) {
+            if let Some(point) = shape.receive_ray(ray, normal) {
                 out.push((point.magnitude(), tag.clone()));
             }
         }
         out
     }
     pub fn raycast_nearest(&self, start: Vector, angle: f32) -> Option<(f32, T)> {
+        let calibrator = Vector::from_mag_dir(1.0, angle) + start;
+        let ray = Line::through(start, calibrator);
+        let normal = ray.normal_through(start).initialize(calibrator);
         self.0
             .read()
             .unwrap()
             .iter()
             .map(|(_, tag, lock)| (tag, lock.read().unwrap()))
-            .filter_map(|(tag, shape)| Some((shape.receive_ray(start, angle)?, tag.clone())))
+            .filter_map(|(tag, shape)| Some((shape.receive_ray(ray, normal)?, tag.clone())))
             .fold(None, |prev, new_val| match prev {
                 Some(prev) => {
                     if new_val.0.magnitude() < prev.0 {
