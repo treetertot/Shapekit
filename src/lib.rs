@@ -1,55 +1,50 @@
 mod lines;
 pub mod shape;
-pub mod vector;
-pub mod world;
-pub mod iterator_based;
+pub mod processing;
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn world_resolution() {
-        use crate::vector::MassConvert;
-        use crate::world::PhysicsWorld;
-        let world = PhysicsWorld::new();
-        let shape_a = world.add_shape(
-            vec![(0.0, 0.0), (0.0, 10.0), (10.0, 10.0), (10.0, 0.0)].to_vectors(),
-            (),
-        );
-        let _shape_b = world.add_shape(
-            vec![(7.4, 7.5), (7.4, 17.5), (17.4, 17.5), (17.4, 7.5)].to_vectors(),
-            (),
-        );
-        assert_ne!(shape_a.collisions().into_iter().next(), None);
-    }
-    #[test]
     fn resolution() {
-        use crate::vector::*;
-        let a = vec![(0.0, 0.0), (0.0, 10.0), (10.0, 10.0), (10.0, 0.0)].to_shape();
-        let b = vec![(7.4, 7.5), (7.4, 17.5), (17.4, 17.5), (17.4, 7.5)].to_shape();
+        use amethyst_core::math::Point2;
+        use crate::shape::Shape;
+        let a = Shape::new(vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]);
+        let b = Shape::new(vec![Point2::new(7.4, 7.5), Point2::new(7.4, 17.5), Point2::new(17.4, 17.5), Point2::new(17.4, 7.5)]);
         assert!(b.resolve(&a).is_some());
     }
     #[test]
     fn eq_test() {
-        use crate::vector::Vector;
-        assert_eq!(Vector { x: 1.0, y: 0.0 } > Vector { x: 0.0, y: 1.1 }, false);
+        use amethyst_core::math::Vector2;
+        assert_eq!(Vector2::new(1.0, 0.0) > Vector2::new(0.0, 1.1), false);
     }
     #[test]
     fn raycast_test() {
-        use crate::vector::MassConvert;
-        use crate::vector::Vector;
-        use crate::world::PhysicsWorld;
-        let world = PhysicsWorld::new();
-        let _shape_a = world.add_shape(
-            vec![(0.0, 0.0), (0.0, 10.0), (10.0, 10.0), (10.0, 0.0)].to_vectors(),
-            (),
+        use amethyst_core::math::Point2;
+        use crate::shape::Shape;
+        use crate::processing::Raycast;
+        let shape_a = Shape::new(
+            vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]
         );
-        assert_ne!(world.raycast_nearest(Vector::new(-1.0, -1.0), 1.0), None);
+        assert_ne!(Raycast::new(&[(shape_a, ())], Point2::new(-1.0, -1.0), 1.0).next(), None);
     }
     #[test]
     fn iter_test() {
-        use crate::vector::*;
-        use crate::iterator_based::*;
-        let world = vec![ (vec![(0.0, 0.0), (0.0, 10.0), (10.0, 10.0), (10.0, 0.0)].to_shape(), ()), (vec![(7.4, 7.5), (7.4, 17.5), (17.4, 17.5), (17.4, 7.5)].to_shape(), ()) ];
-        assert!((&world).collisions().next().is_some());
+        use amethyst_core::math::Point2;
+        use crate::shape::Shape;
+        use crate::processing::Collisions;
+        let world = [ (Shape::new(vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]), ()), (Shape::new(vec![Point2::new(7.4, 7.5), Point2::new(7.4, 17.5), Point2::new(17.4, 17.5), Point2::new(17.4, 7.5)]), ()) ];
+        assert!(Collisions::new(&world).next().is_some());
+    }
+    #[test]
+    fn transformation() {
+        use amethyst_core::math::{Point2, Translation3, UnitQuaternion, Vector3};
+        use amethyst_core::transform::Transform;
+        use crate::shape::Shape;
+        let mut a = Shape::new(vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]);
+        a.set_transformation(&Transform::default());
+        let mut b = a.clone();
+        let transform = Transform::new(Translation3::new(7.4, 7.5, 0.), UnitQuaternion::identity(), Vector3::new(1., 1., 1.));
+        b.set_transformation(&transform);
+        assert!(b.resolve(&a).is_some());
     }
 }

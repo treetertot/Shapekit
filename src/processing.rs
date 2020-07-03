@@ -1,12 +1,15 @@
-use crate::vector::Vector;
 use crate::shape::Shape;
 use crate::lines::*;
 use std::mem;
 use std::marker::PhantomData;
+use amethyst_core::math::{Point2, Vector2};
 
+pub mod system;
+
+#[derive(Debug, PartialEq)]
 pub struct Collision<T> {
     pub collider: T,
-    pub resolution: Vector,
+    pub resolution: Vector2<f32>,
     pub other: T,
 }
 
@@ -77,14 +80,14 @@ impl<'a, T, S: Split<'a, T>, I: Iterator<Item=S>> Iterator for Collisions<'a, I,
 
 pub trait Process<'a, T, I>: Sized {
     fn collisions(self) -> Collisions<'a, I, T>;
-    fn raycast(self, start: Vector, angle: f32) -> Raycast<'a, I, T>;
+    fn raycast(self, start: Point2<f32>, angle: f32) -> Raycast<'a, I, T>;
 }
 
 impl<'a, H: Iterator<Item=S>, S: Split<'a, T>, T: 'a, I: IntoIterator<Item=S, IntoIter=H> + Sized> Process<'a, T, H> for I {
     fn collisions(self) -> Collisions<'a, H, T> {
         Collisions::new(self.into_iter())
     }
-    fn raycast(self, start: Vector, angle: f32) -> Raycast<'a, H, T> {
+    fn raycast(self, start: Point2<f32>, angle: f32) -> Raycast<'a, H, T> {
         Raycast::new(self.into_iter(), start, angle)
     }
 }
@@ -105,9 +108,11 @@ impl<'a, T> Split<'a, T> for (&'a Shape, &'a T) {
     }
 }
 
+
+#[derive(Debug, PartialEq)]
 pub struct RayCollision<T> {
     pub tag: T,
-    pub dist: Vector,
+    pub dist: Vector2<f32>,
 }
 
 pub struct Raycast<'a, I, T> {
@@ -133,8 +138,8 @@ impl<'a, T: 'a, S: Split<'a, T>, I: Iterator<Item=S>> Iterator for Raycast<'a, I
     }
 }
 impl<'a, T: 'a, S: Split<'a, T>, I: Iterator<Item=S>> Raycast<'a, I, T>  {
-    pub fn new<D: IntoIterator<IntoIter=I, Item=S>>(into_iterator: D, start: Vector, angle: f32) -> Self {
-        let calibrator = Vector::from_mag_dir(1.0, angle) + start;
+    pub fn new<D: IntoIterator<IntoIter=I, Item=S>>(into_iterator: D, start: Point2<f32>, angle: f32) -> Self {
+        let calibrator = Point2::from(comp_vec(1.0, angle) + Vector2::new(start.x, start.y));
         let ray = Line::through(start, calibrator);
         let normal = ray.normal_through(start).initialize(calibrator);
         Raycast {
@@ -144,4 +149,8 @@ impl<'a, T: 'a, S: Split<'a, T>, I: Iterator<Item=S>> Raycast<'a, I, T>  {
             ghost: PhantomData
         }
     }
+}
+
+fn comp_vec(mag: f32, dir: f32) -> Vector2<f32> {
+    Vector2::new(mag * dir.cos(), mag * dir.sin())
 }

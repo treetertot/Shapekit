@@ -1,4 +1,4 @@
-use crate::vector::Vector;
+use amethyst_core::math::{Point2, Vector2};
 
 #[derive(Clone, Copy)]
 pub struct Line {
@@ -6,7 +6,7 @@ pub struct Line {
     constant: f32,
 }
 impl Line {
-    pub fn through(a: Vector, b: Vector) -> Line {
+    pub fn through(a: Point2<f32>, b: Point2<f32>) -> Line {
         if a.x == b.x {
             Line {
                 slope: None,
@@ -23,7 +23,7 @@ impl Line {
     pub fn y(&self, x: f32) -> Option<f32> {
         Some((self.slope? * x) + self.constant)
     }
-    pub fn initialize(self, point: Vector) -> InEq {
+    pub fn initialize(self, point: Point2<f32>) -> InEq {
         InEq {
             greater: match self.y(point.x) {
                 Some(val) => point.y > val,
@@ -32,7 +32,7 @@ impl Line {
             line: self,
         }
     }
-    pub fn normal_through(&self, point: Vector) -> Line {
+    pub fn normal_through(&self, point: Point2<f32>) -> Line {
         match self.slope {
             Some(val) => {
                 if val == 0.0 {
@@ -54,31 +54,26 @@ impl Line {
             },
         }
     }
-    pub fn intersection(self, b: &Line) -> Option<Vector> {
+    pub fn intersection(self, b: &Line) -> Option<Point2<f32>> {
         match self.slope {
             Some(m) => match b.slope {
                 Some(m2) => {
                     let x = (b.constant - self.constant) / (m - m2);
-                    Some(Vector {
-                        x: x,
-                        y: self.y(x)?,
-                    })
+                    Some(Point2::new(x, self.y(x)?))
                 }
-                None => Some(Vector {
-                    x: b.constant,
-                    y: self.y(b.constant)?,
-                }),
+                None => Some(
+                    Point2::new(b.constant, self.y(b.constant)?)
+                ),
             },
             None => match b.slope {
-                Some(_m) => Some(Vector {
-                    x: self.constant,
-                    y: b.y(self.constant)?,
-                }),
+                Some(_m) => Some(
+                    Point2::new(self.constant, b.y(self.constant)?)
+                ),
                 None => None,
             },
         }
     }
-    pub fn intersection_segment(self, other: &Line, start: Vector, end: Vector) -> Option<Vector> {
+    pub fn intersection_segment(self, other: &Line, start: Point2<f32>, end: Point2<f32>) -> Option<Point2<f32>> {
         let isect = self.intersection(other)?;
         if ((start.x <= isect.x && isect.x <= end.x) || (start.x >= isect.x && isect.x >= end.x))
             && ((start.y <= isect.y && isect.y <= end.y)
@@ -96,7 +91,7 @@ pub struct InEq {
     greater: bool,
 }
 impl InEq {
-    pub fn contains(&self, point: Vector) -> bool {
+    pub fn contains(&self, point: Point2<f32>) -> bool {
         match self.line.y(point.x) {
             Some(val) => {
                 if self.greater {
@@ -114,7 +109,7 @@ impl InEq {
             }
         }
     }
-    pub fn distance(&self, point: Vector) -> Option<Vector> {
+    pub fn distance(&self, point: Point2<f32>) -> Option<Vector2<f32>> {
         if self.contains(point) {
             return Some(
                 self.line
