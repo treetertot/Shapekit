@@ -37,6 +37,7 @@ T: 'static + Send + Sync {
     type Storage = VecStorage<Self>;
 }
 
+#[derive(Default)]
 pub struct ColliderSys<T>{
     dud: PhantomData<T>
 }
@@ -60,6 +61,13 @@ T: 'static + Send + Sync + Component + Clone {
                 aggregate,
                 collisions: record,
             }
+        }
+    }
+}
+impl<T> ColliderSys<T> {
+    pub fn new() -> Self {
+        ColliderSys {
+            dud: PhantomData
         }
     }
 }
