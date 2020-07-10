@@ -1,8 +1,9 @@
 [package]
 name = "shapekit"
-version = "0.8.0"
+version = "0.8.1"
 authors = ["joshua"]
 edition = "2018"
 
 [dependencies]
 amethyst_core = "0.10"
+smallvec = "1.4"

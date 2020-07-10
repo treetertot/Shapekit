@@ -8,6 +8,8 @@ use amethyst_core::math::{Point2, Vector2, Point4};
 use amethyst_core::transform::Transform;
 use amethyst_core::ecs::prelude::*;
 
+pub use crate::lines::CollisionVector;
+
 #[derive(Debug, Clone)]
 pub struct Shape {
     points: Vec<Point2<f32>>,
@@ -66,6 +68,10 @@ impl Shape {
         }
         Some(out?.0)
     }
+    #[deprecated(
+        since = "0.8.1",
+        note = "please use collide instead"
+    )]
     pub fn resolve(&self, other: &Shape) -> Option<Vector2<f32>> {
         Some(
             self.iter_points()
@@ -88,6 +94,53 @@ impl Shape {
                 })?
                 .1,
         )
+    }
+    fn t_dist_inside(&self, point: Point2<f32>) -> Option<CollisionVector> {
+        let mut out: Option<(CollisionVector, f32)> = None;
+        for side in self.iter_sides() {
+            let dist = side.t_distance(point)?;
+            match dist {
+                CollisionVector::Touch(_) => return Some(dist),
+                CollisionVector::Resolve(resolution) => {
+                    let mag = resolution.magnitude();
+                    match &out {
+                        Some(val) => {
+                            if mag < val.1 {
+                                out = Some((dist, mag));
+                            }
+                        }
+                        None => out = Some((dist, mag))
+                    }
+                }
+            }
+        }
+        Some(out?.0)
+    }
+    pub fn collide(&self, other: &Shape) -> Option<CollisionVector> {
+        let mut result = None;
+        for res in self.iter_points()
+        .filter_map(|point| other.t_dist_inside(*point))
+        .chain(
+            other
+                .iter_points()
+                .filter_map(|point| Some(other.t_dist_inside(*point)?.flip())),
+        ) {
+            match &result {
+                None => result = Some((res.magnitude(), res)),
+                Some((mag, _old_res)) => {
+                    match res {
+                        CollisionVector::Touch(_) => return Some(res),
+                        CollisionVector::Resolve(res_vec) => {
+                            let new_mag = res_vec.magnitude();
+                            if *mag < new_mag {
+                                result = Some((new_mag, res))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Some(result?.1)
     }
     pub fn receive_ray(&self, ray: Line, normal: InEq) -> Option<Vector2<f32>> {
         self.iter_sides()

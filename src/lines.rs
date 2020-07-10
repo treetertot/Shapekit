@@ -1,4 +1,5 @@
 use amethyst_core::math::{Point2, Vector2};
+use std::ops::Deref;
 
 #[derive(Clone, Copy)]
 pub struct Line {
@@ -120,5 +121,87 @@ impl InEq {
             );
         }
         None
+    }
+    fn touches(&self, point: Point2<f32>) -> TouchResult {
+        if self.contains(point) {
+            TouchResult::Contain
+        } else if match self.line.y(point.x) {
+            Some(val) => {
+                if self.greater {
+                    point.y == val
+                } else {
+                    point.y == val
+                }
+            }
+            None => {
+                if self.greater {
+                    point.x == self.line.constant
+                } else {
+                    point.x == self.line.constant
+                }
+            }
+        } {
+            TouchResult::Touch
+        } else {
+            TouchResult::None
+        }
+    }
+    pub fn t_distance(&self, point: Point2<f32>) -> Option<CollisionVector> {
+        match self.touches(point) {
+            TouchResult::None => None,
+            TouchResult::Touch => Some(CollisionVector::Touch(self.normal_vector())),
+            TouchResult::Contain => Some(
+                CollisionVector::Resolve(
+                    self.line
+                        .normal_through(point)
+                        .intersection(&self.line)
+                        .unwrap()
+                        - point,
+                )
+            )
+        }
+    }
+    fn normal_vector(&self) -> Vector2<f32> {
+        let naive = match self.line.slope {
+            Some(m) => {
+                let rand_length = Vector2::new(m, 1.);
+                rand_length / rand_length.magnitude()
+            },
+            None => Vector2::new(1., 0.)
+        };
+        match self.greater {
+            true => naive,
+            false => -naive,
+        }
+    }
+}
+
+enum TouchResult {
+    Touch,
+    Contain,
+    None
+}
+
+#[derive(Debug, Clone)]
+pub enum CollisionVector {
+    Touch(Vector2<f32>),
+    Resolve(Vector2<f32>)
+}
+impl CollisionVector {
+    pub fn flip(&self) -> CollisionVector {
+        match self {
+            Self::Touch(val) => Self::Touch(val * -1.),
+            Self::Resolve(val) => Self::Touch(val * -1.)
+        }
+    }
+}
+impl Deref for CollisionVector {
+    type Target = Vector2<f32>;
+
+    fn deref(&self) -> &Vector2<f32> {
+        match self {
+            Self::Touch(val) => val,
+            Self::Resolve(val) => val
+        }
     }
 }
