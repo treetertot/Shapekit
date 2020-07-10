@@ -52,53 +52,11 @@ impl Shape {
             },
         }
     }
-    fn dist_inside(&self, point: Point2<f32>) -> Option<Vector2<f32>> {
-        let mut out: Option<(Vector2<f32>, f32)> = None;
-        for side in self.iter_sides() {
-            let dist = side.distance(point)?;
-            let mag = dist.magnitude();
-            match out {
-                Some(val) => {
-                    if mag < val.1 {
-                        out = Some((dist, mag))
-                    }
-                }
-                None => out = Some((dist, mag)),
-            }
-        }
-        Some(out?.0)
-    }
-    #[deprecated(
-        since = "0.8.1",
-        note = "please use collide instead"
-    )]
-    pub fn resolve(&self, other: &Shape) -> Option<Vector2<f32>> {
-        Some(
-            self.iter_points()
-                .filter_map(|point| other.dist_inside(*point))
-                .chain(
-                    other
-                        .iter_points()
-                        .filter_map(|point| Some(other.dist_inside(*point)? * -1.0)),
-                )
-                .fold(None, |prev, new_pt| match prev {
-                    Some((mag, vec)) => {
-                        let new_mag = new_pt.magnitude();
-                        if mag < new_pt.magnitude() {
-                            Some((new_mag, new_pt))
-                        } else {
-                            Some((mag, vec))
-                        }
-                    }
-                    None => Some((new_pt.magnitude(), new_pt)),
-                })?
-                .1,
-        )
-    }
-    fn t_dist_inside(&self, point: Point2<f32>) -> Option<CollisionVector> {
+    
+    fn dist_inside(&self, point: Point2<f32>) -> Option<CollisionVector> {
         let mut out: Option<(CollisionVector, f32)> = None;
         for side in self.iter_sides() {
-            let dist = side.t_distance(point)?;
+            let dist = side.distance(point)?;
             match dist {
                 CollisionVector::Touch(_) => return Some(dist),
                 CollisionVector::Resolve(resolution) => {
@@ -119,11 +77,11 @@ impl Shape {
     pub fn collide(&self, other: &Shape) -> Option<CollisionVector> {
         let mut result = None;
         for res in self.iter_points()
-        .filter_map(|point| other.t_dist_inside(*point))
+        .filter_map(|point| other.dist_inside(*point))
         .chain(
             other
                 .iter_points()
-                .filter_map(|point| Some(other.t_dist_inside(*point)?.flip())),
+                .filter_map(|point| Some(other.dist_inside(*point)?.flip())),
         ) {
             match &result {
                 None => result = Some((res.magnitude(), res)),

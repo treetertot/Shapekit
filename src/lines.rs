@@ -110,18 +110,6 @@ impl InEq {
             }
         }
     }
-    pub fn distance(&self, point: Point2<f32>) -> Option<Vector2<f32>> {
-        if self.contains(point) {
-            return Some(
-                self.line
-                    .normal_through(point)
-                    .intersection(&self.line)
-                    .unwrap()
-                    - point,
-            );
-        }
-        None
-    }
     fn touches(&self, point: Point2<f32>) -> TouchResult {
         if self.contains(point) {
             TouchResult::Contain
@@ -146,7 +134,7 @@ impl InEq {
             TouchResult::None
         }
     }
-    pub fn t_distance(&self, point: Point2<f32>) -> Option<CollisionVector> {
+    pub fn distance(&self, point: Point2<f32>) -> Option<CollisionVector> {
         match self.touches(point) {
             TouchResult::None => None,
             TouchResult::Touch => Some(CollisionVector::Touch(self.normal_vector())),

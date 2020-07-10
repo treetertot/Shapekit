@@ -10,7 +10,7 @@ mod tests {
         use crate::shape::Shape;
         let a = Shape::new(vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]);
         let b = Shape::new(vec![Point2::new(7.4, 7.5), Point2::new(7.4, 17.5), Point2::new(17.4, 17.5), Point2::new(17.4, 7.5)]);
-        assert!(b.resolve(&a).is_some());
+        assert!(b.collide(&a).is_some());
     }
     #[test]
     fn eq_test() {
@@ -28,14 +28,6 @@ mod tests {
         assert_ne!(Raycast::new(&[(shape_a, ())], Point2::new(-1.0, -1.0), 1.0).next(), None);
     }
     #[test]
-    fn iter_test() {
-        use amethyst_core::math::Point2;
-        use crate::shape::Shape;
-        use crate::processing::Collisions;
-        let world = [ (Shape::new(vec![Point2::new(0.0, 0.0), Point2::new(0.0, 10.0), Point2::new(10.0, 10.0), Point2::new(10.0, 0.0)]), ()), (Shape::new(vec![Point2::new(7.4, 7.5), Point2::new(7.4, 17.5), Point2::new(17.4, 17.5), Point2::new(17.4, 7.5)]), ()) ];
-        assert!(Collisions::new(&world).next().is_some());
-    }
-    #[test]
     fn transformation() {
         use amethyst_core::math::{Point2, Translation3, UnitQuaternion, Vector3};
         use amethyst_core::transform::Transform;
@@ -45,6 +37,6 @@ mod tests {
         let mut b = a.clone();
         let transform = Transform::new(Translation3::new(7.4, 7.5, 0.), UnitQuaternion::identity(), Vector3::new(1., 1., 1.));
         b.set_transformation(&transform);
-        assert!(b.resolve(&a).is_some());
+        assert!(b.collide(&a).is_some());
     }
 }
