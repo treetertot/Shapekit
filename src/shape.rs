@@ -10,10 +10,11 @@ use amethyst::{
         transform::Transform
     },
     assets::{PrefabData},
-    derive::PrefabData,
     ecs::{
         storage::DenseVecStorage,
-        Component, Entity, WriteStorage
+        Component,
+        Entity,
+        WriteStorage
     },
     Error
 };
@@ -21,8 +22,27 @@ use serde::{Serialize, Deserialize};
 
 pub use crate::lines::CollisionVector;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PrefabData)]
-#[prefab(Component)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShapePrefab {
+    pub points: Vec<Point2<f32>>
+}
+impl<'a> PrefabData<'a> for ShapePrefab {
+    type SystemData = WriteStorage<'a, Shape>;
+
+    type Result = ();
+
+    fn add_to_entity(
+        &self,
+        entity: Entity,
+        shapes: &mut Self::SystemData,
+        _entities: &[Entity],
+        _children: &[Entity],
+    ) -> Result<(), Error> {
+        shapes.insert(entity, Shape::new(self.points.clone())).map(|_| ())?;
+        Ok(())
+    }
+}
+#[derive(Debug, Clone)]
 pub struct Shape {
     points: Vec<Point2<f32>>,
     moved_points: Vec<Point2<f32>>,
@@ -136,10 +156,11 @@ impl Shape {
             Point2::new(tformed.x, tformed.y)
         });
     }
-    pub fn transform<F: FnMut(&Point2<f32>) -> Point2<f32>>(&mut self, func: F) {
-        for (point, p_out) in self.points.iter().map(func).zip(self.moved_points.iter_mut()) {
+    pub fn transform<F: FnMut(&Point2<f32>) -> Point2<f32>>(&mut self, mut func: F) {
+        for (point, p_out) in self.points.iter().map(&mut func).zip(self.moved_points.iter_mut()) {
             *p_out = point;
         }
+        self.moved_center = func(&self.center);
     }
 }
 
