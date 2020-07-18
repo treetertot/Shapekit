@@ -1,6 +1,6 @@
-use amethyst_core::ecs::prelude::*;
-use amethyst_core::transform::Transform;
-use amethyst_core::math::Vector2;
+use amethyst::core::ecs::prelude::*;
+use amethyst::core::transform::Transform;
+use amethyst::core::math::Vector2;
 
 use smallvec::SmallVec;
 

@@ -1,9 +1,10 @@
 [package]
 name = "shapekit"
-version = "0.9.0"
+version = "0.9.1"
 authors = ["joshua"]
 edition = "2018"
 
 [dependencies]
-amethyst_core = "0.10"
+amethyst = {version = "0.15", features = ["vulkan"]}
 smallvec = "1.4"
+serde = {version = "1", features = ["derive"]}

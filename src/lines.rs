@@ -1,4 +1,4 @@
-use amethyst_core::math::{Point2, Vector2};
+use amethyst::core::math::{Point2, Vector2};
 use std::ops::Deref;
 
 #[derive(Clone, Copy)]

@@ -4,13 +4,25 @@ use shapeiters::*;
 use std::f32;
 use std::slice::Iter;
 use std::cmp::PartialEq;
-use amethyst_core::math::{Point2, Vector2, Point4};
-use amethyst_core::transform::Transform;
-use amethyst_core::ecs::prelude::*;
+use amethyst::{
+    core::{
+        math::{Point2, Vector2, Point4},
+        transform::Transform
+    },
+    assets::{PrefabData},
+    derive::PrefabData,
+    ecs::{
+        storage::DenseVecStorage,
+        Component, Entity, WriteStorage
+    },
+    Error
+};
+use serde::{Serialize, Deserialize};
 
 pub use crate::lines::CollisionVector;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PrefabData)]
+#[prefab(Component)]
 pub struct Shape {
     points: Vec<Point2<f32>>,
     moved_points: Vec<Point2<f32>>,

@@ -1,7 +1,7 @@
 use crate::lines::{InEq, Line};
 use std::iter::Peekable;
 use std::slice;
-use amethyst_core::math::Point2;
+use amethyst::core::math::Point2;
 
 pub struct SidesIter<'a> {
     pub points: Peekable<slice::Iter<'a, Point2<f32>>>,

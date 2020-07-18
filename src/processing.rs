@@ -1,7 +1,7 @@
 use crate::shape::Shape;
 use crate::lines::*;
 use std::marker::PhantomData;
-use amethyst_core::math::{Point2, Vector2};
+use amethyst::core::math::{Point2, Vector2};
 
 pub mod system;
 
