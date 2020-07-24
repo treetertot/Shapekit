@@ -26,10 +26,7 @@ pub struct Collisions<T> {
 }
 impl<T> Collisions<T> {
     pub fn new() -> Self {
-        Collisions {
-            aggregate: Vector2::new(0., 0.),
-            collisions: SmallVec::new()
-        }
+        Self::default()
     }
     pub fn resolution(&self) -> Vector2<f32> {
         self.aggregate
@@ -41,6 +38,14 @@ impl<T> Collisions<T> {
 impl<T> Component for Collisions<T> where
 T: 'static + Send + Sync {
     type Storage = VecStorage<Self>;
+}
+impl<T> Default for Collisions<T> {
+    fn default() -> Self {
+        Collisions {
+            aggregate: Vector2::new(0., 0.),
+            collisions: SmallVec::new()
+        }
+    }
 }
 
 #[derive(Default)]
