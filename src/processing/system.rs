@@ -25,6 +25,12 @@ pub struct Collisions<T> {
     collisions: SmallVec<[(CollisionVector, T); 1]>
 }
 impl<T> Collisions<T> {
+    pub fn new() -> Self {
+        Collisions {
+            aggregate: Vector2::new(0., 0.),
+            collisions: SmallVec::new()
+        }
+    }
     pub fn resolution(&self) -> Vector2<f32> {
         self.aggregate
     }
