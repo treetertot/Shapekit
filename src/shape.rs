@@ -3,6 +3,7 @@ use crate::lines::*;
 use shapeiters::*;
 use std::f32;
 use std::slice::Iter;
+use std::borrow::Borrow;
 use std::cmp::PartialEq;
 use amethyst::{
     core::{
@@ -50,10 +51,37 @@ pub struct Shape {
     moved_center: Point2<f32>,
 }
 impl Shape {
-    pub fn new(points: Vec<Point2<f32>>) -> Shape {
+    pub fn new<PointType: Borrow<Point2<f32>>, I: IntoIterator<Item=PointType>>(points: I) -> Shape {
         let mut avg = Vector2::new(0., 0.);
-        for &point in &points {
+        let mut iter = points.into_iter().peekable();
+        let size = if iter.size_hint().0 != 0 {
+            iter.size_hint().0 * 2
+        } else {
+            8
+        };
+        let first = match iter.peek() {
+            Some(value) => Vector2::new(value.borrow().x, value.borrow().y),
+            None => return Shape {
+                points: Vec::new(),
+                moved_points: Vec::new(),
+                moved_center: Point2::new(0. ,0.),
+                center: Point2::new(0., 0.)
+            }
+        };
+        let mut points = Vec::with_capacity(size);
+        while let Some(point) = iter.next() {
+            let point = point.borrow();
+            let next = match iter.peek() {
+                Some(nxt) => Vector2::new(nxt.borrow().x, nxt.borrow().y),
+                None => first
+            };
+            let mid_mid = point + next;
+            let mid = Point2::new(mid_mid.x/2., mid_mid.y/2.);
+            println!("point: {:?}, next: {:?}, mid: {:?}", point, next, mid);
             avg += Vector2::new(point.x, point.y);
+            points.push(*point);
+            points.push(mid);
+            
         }
         if points.len() != 0 {
             avg = avg / (points.len() as f32);
