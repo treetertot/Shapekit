@@ -77,7 +77,6 @@ impl Shape {
             };
             let mid_mid = point + next;
             let mid = Point2::new(mid_mid.x/2., mid_mid.y/2.);
-            println!("point: {:?}, next: {:?}, mid: {:?}", point, next, mid);
             avg += Vector2::new(point.x, point.y);
             points.push(*point);
             points.push(mid);
